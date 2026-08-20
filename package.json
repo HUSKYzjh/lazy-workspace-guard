@@ -1,0 +1,79 @@
+{
+  "name": "lazy-workspace-guard",
+  "displayName": "Lazy Workspace Guard",
+  "description": "Browse excluded large directories on demand without adding recursive file watchers.",
+  "version": "0.1.0",
+  "publisher": "hpc-tools",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other", "SCM Providers"],
+  "keywords": ["hpc", "remote-ssh", "large-workspace", "file-watcher"],
+  "activationEvents": ["onView:lazyWorkspaceGuard.explorer"],
+  "main": "./out/extension.js",
+  "extensionKind": ["workspace"],
+  "contributes": {
+    "commands": [
+      { "command": "lazyWorkspaceGuard.openResource", "title": "Lazy Workspace Guard: Open Resource" },
+      { "command": "lazyWorkspaceGuard.refresh", "title": "Lazy Workspace Guard: Refresh" },
+      { "command": "lazyWorkspaceGuard.excludeFromWatchers", "title": "Lazy Workspace Guard: Exclude Folder from Watchers and Search" },
+      { "command": "lazyWorkspaceGuard.restoreManagedRules", "title": "Lazy Workspace Guard: Restore Managed Exclusions" }
+    ],
+    "views": {
+      "explorer": [
+        { "id": "lazyWorkspaceGuard.explorer", "name": "Lazy Workspace Guard" }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "lazyWorkspaceGuard.refresh",
+          "when": "view == lazyWorkspaceGuard.explorer",
+          "group": "navigation"
+        },
+        {
+          "command": "lazyWorkspaceGuard.restoreManagedRules",
+          "when": "view == lazyWorkspaceGuard.explorer",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "lazyWorkspaceGuard.excludeFromWatchers",
+          "when": "view == lazyWorkspaceGuard.explorer && viewItem == resourceFolder",
+          "group": "inline"
+        },
+        {
+          "command": "lazyWorkspaceGuard.refresh",
+          "when": "view == lazyWorkspaceGuard.explorer && viewItem =~ /resource(Folder|WorkspaceFolder)/",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Lazy Workspace Guard",
+      "properties": {
+        "lazyWorkspaceGuard.excludePythonAnalysis": {
+          "type": "boolean",
+          "default": false,
+          "description": "Also add managed exclusions to python.analysis.exclude."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext .ts",
+    "test": "npm run compile && node --test out/test/rules.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "eslint": "^9.16.0",
+    "typescript": "^5.7.2"
+  }
+}

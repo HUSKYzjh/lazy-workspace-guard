@@ -7,11 +7,11 @@ This directory currently contains product and technical planning documents for a
 - `VS Code Remote-SSH 大文件树内存问题：情况说明与插件规划.md` records the problem, MVP, API choices, and acceptance criteria.
 - `HPC Lazy Explorer 阶段二—通用化产品计划.md` describes the broader product roadmap and release requirements.
 
-There is no implementation, package manifest, test suite, or build configuration yet. When code is introduced, keep the conventional extension layout: `src/` for TypeScript, `test/` for tests, `.vscode/` for workspace/debug configuration, and `docs/` for user-facing design material. Do not mix generated output with plans.
+The extension implementation is in `src/`; pure unit tests are in `src/test/`; `.vscode/` contains debug tasks; and `out/` is generated TypeScript output. Keep design plans at the repository root until a `docs/` directory is introduced. Do not commit generated output or dependencies.
 
 ## Development & Verification
 
-No build or test commands are defined at present. Before adding commands to documentation or CI, confirm them from `package.json`; likely extension commands will include `npm run compile`, `npm run lint`, and `npm test`.
+Run `npm run compile` to transpile TypeScript, `npm run lint` for ESLint, `npm test` for the Node unit suite, and `npm run test:integration` for the isolated Extension Development Host suite. Press `F5` in VS Code to start an Extension Development Host. Confirm commands in `package.json` before changing CI or documentation.
 
 For planning-only changes, preview the Markdown in VS Code and verify that headings, JSON examples, paths, and cross-references are accurate. Keep claims about VS Code APIs and Remote-SSH behavior tied to the relevant design document.
 
@@ -19,7 +19,7 @@ For planning-only changes, preview the Markdown in VS Code and verify that headi
 
 Write Markdown with concise Chinese prose, `#`/`##` heading hierarchy, fenced blocks for JSON or shell examples, and backticks for file paths, settings keys, commands, and APIs. Preserve existing Chinese filenames; use descriptive filenames rather than abbreviations.
 
-Future TypeScript should use two-space indentation, `camelCase` for variables/functions, `PascalCase` for classes and exported types, and descriptive command IDs such as `hpcLazyExplorer.refreshNode`. The extension must avoid recursive scans and `workspace.createFileSystemWatcher`; directory reads should be lazy and non-recursive.
+TypeScript uses two-space indentation, `camelCase` for variables/functions, `PascalCase` for classes and exported types, and descriptive command IDs such as `lazyWorkspaceGuard.refreshDiagnostics`. Localize manifest strings through `package.nls.json` and `package.nls.zh-cn.json`, and runtime strings through `src/i18n.ts`. The extension must avoid recursive scans and `workspace.createFileSystemWatcher`; directory reads should be lazy and non-recursive.
 
 ## Testing Expectations
 

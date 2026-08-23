@@ -1,51 +1,78 @@
-# Lazy Workspace Guard
+# Lazy Workspace Guard / 惰性工作区守卫
 
-## English
+Safely inspect a very large local or Remote-SSH directory **without opening it as a VS Code workspace**. The custom tree reads only the direct children that you expand; it never creates a file watcher or performs a recursive scan.
 
-Lazy Workspace Guard safely browses very large local and Remote-SSH directories without adding them to the VS Code workspace. Its tree reads only the direct children of an expanded node and never creates a file watcher.
+> **Preview** — Please report problems with a redacted error message and your VS Code/Remote-SSH versions in [SUPPORT.md](SUPPORT.md).
 
-Release information: [CHANGELOG](CHANGELOG.md), [security and privacy](SECURITY.md), [support](SUPPORT.md), and the maintainer [release checklist](RELEASE_CHECKLIST.md).
+- [English](#english)
+- [中文](#中文)
+- [Changelog](CHANGELOG.md) · [Security & privacy](SECURITY.md) · [Release notes](RELEASE_CHECKLIST.md)
 
-### Safe Remote Browsing
+---
 
-In an empty Linux Remote-SSH window, open the extension and run **Browse Remote Directory Safely**. Enter an absolute path, for example `/home/zhaijiahui/`. Completion lists up to 100 matching direct child directories. The extension applies the prefix filter itself, so candidates remain visible even though the typed path contains `/` characters. Choose a candidate to complete the path, then choose **Browse**.
+# English
 
-Directory symbolic links are included and labelled. Expanding one follows only that selected link as the listing root; it does not recursively follow child links. Added roots are saved in extension storage and restored for future sessions on the same remote extension installation. Use the root's trash action to remove a saved path.
+## Is this for you?
 
-The command refuses to run if a workspace folder is open. It does not call **Open Folder**, add a workspace folder, or open a folder picker. For safe roots, every listing is a bounded, non-recursive server-side `find` operation.
+Use this extension when a large directory could make the native Explorer, search, or file watching expensive. It is designed for an already connected **Linux Remote-SSH** window with **no workspace folder open**. It does not replace the native Explorer for ordinary projects.
 
-### Sorting, Diagnostics, and Settings
+## Install
 
-Use the title-bar gear icon to choose server order or folders-first name order. The selected mode is saved in remote extension storage and automatically restored after reloads and later sessions on that remote installation. Safe remote sorting applies only to the loaded page. The Diagnostics view reports shared Extension Host memory and this extension's lazy-read counters; it cannot report native Explorer or core file-watcher memory.
+1. Connect using **Remote-SSH: Connect to Host**. Do not open the large directory with **File: Open Folder**.
+2. Install the extension under the `SSH: <host>` target, not only under Local.
+3. Run **Developer: Reload Window** after installing or updating.
+4. The three-step **Getting Started** walkthrough appears after installation. Reopen it with **Getting Started: Open Walkthrough** and select *Lazy Workspace Guard*.
 
-The extension can add explicit, reversible `files.watcherExclude`, `search.exclude`, and optional `python.analysis.exclude` rules for a selected workspace subfolder. It never creates `workspace.createFileSystemWatcher`.
+For a VSIX build, install `lazy-workspace-guard-0.1.13.vsix` while the Remote-SSH window is active.
 
-### First Remote-SSH Session
+## First safe browse
 
-1. Connect to the target using **Remote-SSH: Connect to Host**. Do **not** use **Open Folder** for the large directory; the native Explorer should still say that no folder is open.
-2. In Extensions, ensure Lazy Workspace Guard is installed under the `SSH: <host>` target, then run **Developer: Reload Window** once after installation or update.
-3. Open the **Lazy Workspace Guard** view and select the folder icon in its title bar, or run **Browse Remote Directory Safely** from the Command Palette.
-4. Enter an absolute remote path such as `/home/user/project/`. Select a completion if useful, then select **Browse**. Adding it creates a saved safe root, not a VS Code workspace folder.
-5. Expand only the folders you need. Right-click files or non-root folders for open, copy, compare, terminal, and guarded file-management actions.
+1. Confirm the native Explorer says that no folder is open.
+2. Open **Lazy Workspace Guard** in Explorer, then click its folder icon; alternatively run **Browse Remote Directory Safely** from the Command Palette.
+3. Enter an absolute Linux path, such as `/home/user/project/`.
+4. Select a suggested direct child directory when useful, then choose **Browse**.
+5. Expand only the directories needed for the current task.
 
-### Safety, Recovery, and Feedback
+The entered path becomes a saved *safe root*, not a workspace folder. Saved roots and the selected sorting mode are restored on later sessions for the same remote extension installation. Use the root trash icon only to remove that saved entry.
 
-- The safe-root trash action removes only the saved entry from this view. It never deletes the remote directory.
-- The **Delete** action is different: it changes the remote filesystem and may be permanent if that filesystem has no supported trash. The confirmation dialog shows the target path; verify it before confirming.
-- If **Browse Remote Directory Safely** is missing, install or enable the extension on the remote `SSH: <host>` target, then reload the window. If no completion appears, type a valid absolute Linux path ending in `/`; candidates are deliberately limited to one bounded page.
-- For a pre-release report, include the extension and VS Code versions, whether Remote-SSH is active, and a redacted error. See [SUPPORT.md](SUPPORT.md).
+### Completion and symbolic links
 
-### Context Menu
+After an absolute path ending in `/`, the dialog offers at most 100 matching direct child directories. The extension applies prefix matching itself, so `/` in the query does not hide entries. If there are no suggestions, the typed path can still be browsed if it exists and is a directory.
 
-The custom lazy tree cannot reuse VS Code's native Explorer menu: native commands require a workspace-backed Explorer item, and some actions such as **Find in Folder** would recursively scan the target. Right-clicking a file provides **Open Resource**, **Open Resource to the Side**, **Open With…**, **Select for Compare**, **Compare with Selected**, **Open Timeline**, and **Copy File Contents**. Every resource also supports direct **Copy Name**, **Copy Remote Path**, **Copy Relative Path**, **Copy VS Code Remote URI**, **Copy SSH Location**, **Open Terminal Here**, and **Show Properties**; these read only the selected resource and never scan a directory. Content copying accepts UTF-8 text only and is limited to 1 MiB. Timeline delegates to enabled VS Code providers, such as Git, for the selected file.
+Directory symbolic links appear with a label. Expanding one follows only that selected link as a listing root; nested links are not followed recursively.
 
-Directories offer **New File** and **New Folder**. Files and non-root directories offer **Rename** and **Delete**. Names must be a single path segment; creation and renaming never overwrite an existing resource. Delete displays the exact path in a modal confirmation. Deleting a folder is recursive and requests the remote trash when available, so treat it as destructive. Safe roots and workspace roots cannot be renamed or deleted; the safe-root trash action only removes the saved path from this view. Workspace-only exclusion actions appear only for real workspace subfolders, never for safely browsed remote roots.
+## What the view can do
 
-### Install and Verify
+| Task | How | Scope |
+| --- | --- | --- |
+| Sort entries | Title-bar gear | Server order or folders-first name order; remembered per remote installation |
+| Inspect cost | **Lazy Workspace Guard: Diagnostics** | Shared Extension Host memory and bounded read counters |
+| Open and compare | File context menu | Open, Open to the Side, Open With, select/compare, Timeline |
+| Copy data | Resource context menu | Name, remote/relative path, Remote URI, SSH location, UTF-8 text contents (up to 1 MiB) |
+| Work in a shell | **Open Terminal Here** | Opens a terminal at the selected resource location |
+| Manage files | Context menu | Create file/folder, rename, delete after confirmation |
 
-Install `lazy-workspace-guard-0.1.12.vsix` while connected to `SSH: <host>`, then run **Developer: Reload Window**. Confirm that the extension page shows version `0.1.12` under the remote target. Type `/home/` in the safe-browse dialog: direct child directories, such as `zhaijiahui`, should be visible.
+The custom tree cannot reuse every native Explorer command: some VS Code commands require a workspace-backed item, while actions such as **Find in Folder** could recursively scan the target.
 
-For development:
+## Safety model
+
+- Lazy listings use bounded, non-recursive server-side reads. The extension never calls `workspace.createFileSystemWatcher`.
+- **Remove saved root** only removes the stored path from this view. It never deletes the remote directory.
+- **Delete** modifies the remote filesystem. Folder deletion is recursive; remote trash is requested when supported, but treat it as potentially permanent. Read the full path in the confirmation dialog.
+- New names and renamed names must be one path segment; the extension refuses to overwrite an existing resource.
+- Workspace exclusion actions apply only to real workspace subfolders. They add reversible `files.watcherExclude`, `search.exclude`, and optional `python.analysis.exclude` rules; they do not apply to safe roots.
+
+## Troubleshooting
+
+| Problem | Check |
+| --- | --- |
+| Command is missing | Install/enable the extension under `SSH: <host>`, then reload the window. |
+| Browse is refused | Close every workspace folder first; safe browse runs only in an empty Remote-SSH window. |
+| No completion results | Use an existing absolute Linux path ending in `/`; results are deliberately limited to 100 direct directories. |
+| Native Explorer shows the directory | It was opened as a workspace. Close the folder/window, reconnect with Remote-SSH, and use safe browse instead. |
+| Need memory details | Open Diagnostics. VS Code does not expose native Explorer or core file-watcher memory through the extension API. |
+
+## Development
 
 ```sh
 npm ci
@@ -58,54 +85,73 @@ npm run package
 
 ---
 
-# 惰性工作区守卫
+# 中文
 
-## 中文
+## 适用场景
 
-惰性工作区守卫用于安全浏览超大的本地或 Remote-SSH 目录，而不会将它们加入 VS Code 工作区。文件树只在用户展开节点时读取其直接子项，并且绝不创建文件监听器。
+惰性工作区守卫用于**不将目录作为 VS Code 工作区打开**的前提下，检查超大的本地或 Remote-SSH 目录。自定义文件树仅在展开节点时读取其直接子项，不创建文件监听器，也不进行递归扫描。
 
-发布信息：[更新记录](CHANGELOG.md)、[安全与隐私](SECURITY.md)、[支持渠道](SUPPORT.md) 和维护者用的[发布检查清单](RELEASE_CHECKLIST.md)。
+当大型目录会让原生资源管理器、搜索或文件监听占用较多资源时使用它。远程安全浏览仅面向：已经连接的 **Linux Remote-SSH** 窗口，且窗口内**没有打开工作区文件夹**。普通项目仍建议使用原生 Explorer。
 
-### 安全浏览远程目录
+## 安装与开始
 
-在未打开任何工作区的 Linux Remote-SSH 窗口中，打开本扩展并运行**安全浏览远程目录**。输入绝对路径，例如 `/home/zhaijiahui/`。自动补全最多列出当前父目录中 100 个匹配的直接子目录。插件自行按路径前缀筛选，因此即使输入内容包含 `/`，候选项也不会被 VS Code 的名称筛选隐藏。选择候选项以补全路径，再选择“浏览”。
+1. 使用“**Remote-SSH: Connect to Host**”连接主机；不要对大型目录执行“文件：打开文件夹”。
+2. 在扩展页确认插件安装在 `SSH: <主机>` 目标下，而非仅安装在 Local。
+3. 首次安装或更新后，执行一次“**开发人员：重新加载窗口**”。
+4. 安装后会显示三步“入门”引导；需要再次查看时，运行 **Getting Started: Open Walkthrough**，并选择“惰性工作区守卫”。
 
-目标为目录的符号链接会被列出并标识。展开时只将用户选中的链接作为列举根目录，不会递归跟随其内部链接。已添加的根目录会保存到扩展存储，并在同一远程扩展安装后的后续会话中恢复；点击根目录的垃圾桶图标即可删除保存路径。
+使用 VSIX 时，请在 Remote-SSH 窗口中安装 `lazy-workspace-guard-0.1.13.vsix`。
 
-如果窗口已打开工作区文件夹，该命令会拒绝执行。它不会调用“打开文件夹”、不会添加工作区文件夹，也不会打开目录选择器。安全根目录始终使用服务端有界、非递归的 `find` 列举。
+## 第一次安全浏览远程目录
 
-### 排序、诊断与设置
+1. 确认原生 Explorer 仍显示“尚未打开文件夹”。
+2. 在 Explorer 打开“**惰性工作区守卫**”视图，点击标题栏的文件夹图标；也可在命令面板运行“**安全浏览远程目录**”。
+3. 输入远程 Linux 绝对路径，例如 `/home/用户名/项目目录/`。
+4. 有需要时选择候选目录补全路径，再选择“浏览”。
+5. 只展开当前确实需要查看的文件夹。
 
-使用标题栏齿轮图标选择服务器返回顺序或“文件夹优先”的名称排序。所选方式会保存到远程扩展存储中，并在重载窗口及该远程安装后的后续会话中自动恢复。安全远程模式只排序当前已加载页。诊断视图展示共享 Extension Host 内存和本扩展的惰性读取指标；VS Code 未公开原生 Explorer 或核心文件监听器的内存数据。
+加入的目录是保存的“安全根”，不是工作区文件夹。安全根和排序方式会保存到同一远程扩展安装的存储中，后续会话自动恢复。根目录的垃圾桶图标只会移除这条保存记录。
 
-用户可以对选定工作区子文件夹明确添加、并可还原 `files.watcherExclude`、`search.exclude` 和可选的 `python.analysis.exclude` 规则。本扩展绝不创建 `workspace.createFileSystemWatcher`。
+### 自动补全与符号链接
 
-### 首次 Remote-SSH 使用
+输入以 `/` 结尾的绝对路径后，插件至多显示 100 个匹配的直接子目录，并自行按前缀过滤，因此输入内容中的 `/` 不会让 VS Code 隐藏候选项。没有候选项时，只要输入路径存在且是目录，仍可直接选择“浏览”。
 
-1. 使用“**Remote-SSH: Connect to Host**”连接目标主机。不要对大型目录使用“打开文件夹”；原生 Explorer 仍应显示“尚未打开文件夹”。
-2. 在扩展视图确认惰性工作区守卫已安装在 `SSH: <主机>` 目标下；首次安装或更新后执行一次“**开发人员：重新加载窗口**”。
-3. 打开“**惰性工作区守卫**”视图，点击标题栏的文件夹图标；或在命令面板运行“**安全浏览远程目录**”。
-4. 输入远程绝对路径，例如 `/home/用户名/项目目录/`。可选择候选项补全，然后选择“浏览”。加入的是保存的安全根，不是 VS Code 工作区文件夹。
-5. 只展开当前需要的目录。右键文件或非根文件夹可执行打开、复制、比较、终端和受保护的文件管理操作。
+指向目录的符号链接会显示标识。展开后只将该链接本身作为列举根目录，不会递归跟随内部的其他链接。
 
-### 安全、恢复与反馈
+## 常用功能
 
-- 安全根的垃圾桶操作只会从本视图移除保存记录，绝不会删除远程目录。
-- “删除”操作则会修改远程文件系统；若该文件系统不支持回收站，删除可能不可恢复。确认框会显示目标路径，确认前务必核对。
-- 若找不到“安全浏览远程目录”，请确认插件已安装/启用于远程 `SSH: <主机>` 目标，然后重载窗口。若没有补全候选项，请输入以 `/` 开始并以 `/` 结尾的有效 Linux 绝对路径；候选项有意限制在一个有界页面内。
-- 提交预发布反馈时，请提供插件和 VS Code 版本、是否在 Remote-SSH 环境及脱敏后的错误信息。详见 [SUPPORT.md](SUPPORT.md)。
+| 目标 | 操作方式 | 说明 |
+| --- | --- | --- |
+| 更改排序 | 标题栏齿轮 | 服务器顺序或“文件夹优先”的名称排序；会自动记忆 |
+| 了解开销 | “惰性工作区守卫：诊断” | 查看共享 Extension Host 内存和有界读取计数 |
+| 打开和比较 | 文件右键菜单 | 打开、侧边打开、打开方式、选择/与已选项比较、时间线 |
+| 复制信息 | 资源右键菜单 | 名称、远程/相对路径、远程 URI、SSH 地址、文件内容（UTF-8，最多 1 MiB） |
+| 在终端操作 | “在此处打开终端” | 在所选资源所在位置打开终端 |
+| 管理远程文件 | 右键菜单 | 新建文件/文件夹、重命名、确认后删除 |
 
-### 右键菜单
+惰性树不能照搬全部原生 Explorer 菜单：部分 VS Code 命令要求对象属于工作区 Explorer，“在文件夹中查找”等命令还可能递归扫描目标目录。
 
-自定义惰性树不能直接复用 VS Code 原生 Explorer 菜单：原生命令要求对象属于工作区 Explorer，而“在文件夹中查找”等操作还会递归扫描目标目录。右键单击文件会提供：**打开资源**、**在侧边打开资源**、**打开方式…**、**选择以进行比较**、**与已选项比较**、**打开时间线**和**复制文件内容**。所有资源还直接提供**复制名称**、**复制远程路径**、**复制相对路径**、**复制 VS Code 远程 URI**、**复制 SSH 地址**、**在此处打开终端**和**查看属性**；它们只操作所选资源，不会扫描目录。复制内容仅接受 UTF-8 文本，且上限为 1 MiB。时间线会交由已启用的 VS Code 提供程序（例如 Git）处理所选文件。
+## 安全边界
 
-右键单击文件夹可使用**新建文件**和**新建文件夹**；文件和非根文件夹可使用**重命名**与**删除**。名称必须是单个路径片段；新建和重命名都不会覆盖已有资源。删除前会在模态确认框中显示准确路径。删除文件夹会递归删除其中的内容，并在远程端支持时请求使用回收站，因此仍应视为破坏性操作。安全根和工作区根不可重命名或删除；安全根的垃圾桶操作仅将保存的路径从本视图移除。排除规则操作仅对真正的工作区子目录显示，绝不会显示在安全浏览的远程根目录中。
+- 目录列举始终是有界、非递归的服务端读取；插件绝不调用 `workspace.createFileSystemWatcher`。
+- “移除保存的根目录”只会从本视图删除存储路径，绝不删除远程目录。
+- “删除”会修改远程文件系统。文件夹删除是递归的；即便远程端支持回收站，也应视为可能不可恢复。确认前请核对对话框中的完整路径。
+- 新建和重命名仅接受单个路径片段，且不会覆盖已有资源。
+- 排除规则只对真正的工作区子目录提供；它们可逆地写入 `files.watcherExclude`、`search.exclude` 和可选的 `python.analysis.exclude`，不会作用于安全根目录。
 
-### 安装与验证
+## 排障
 
-在连接 `SSH: <主机>` 时安装 `lazy-workspace-guard-0.1.12.vsix`，然后执行“开发人员：重新加载窗口”。确认扩展页面在远程目标下显示版本 `0.1.12`。在安全浏览对话框输入 `/home/` 后，应能看到 `zhaijiahui` 等直接子目录。
+| 现象 | 处理方法 |
+| --- | --- |
+| 找不到命令 | 确认插件已安装/启用于 `SSH: <主机>`，然后重载窗口。 |
+| 命令拒绝执行 | 关闭所有工作区文件夹；安全浏览只允许在空的 Remote-SSH 窗口运行。 |
+| 没有补全候选项 | 输入存在、以 `/` 开头并以 `/` 结尾的 Linux 绝对路径；候选项有意最多 100 个。 |
+| 原生 Explorer 出现大目录 | 该目录已经作为工作区打开。关闭文件夹/窗口，重新用 Remote-SSH 连接后再使用安全浏览。 |
+| 希望查看内存 | 打开“诊断”。VS Code 扩展 API 不提供原生 Explorer 或核心文件监听器的内存数据。 |
 
-开发命令：
+提交反馈时，请附上 VS Code 与插件版本、是否通过 Remote-SSH 运行，以及脱敏后的错误信息；详见 [SUPPORT.md](SUPPORT.md)。
+
+## 开发
 
 ```sh
 npm ci

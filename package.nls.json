@@ -35,4 +35,15 @@
   "configuration.title": "Lazy Workspace Guard",
   "configuration.excludePythonAnalysis.description": "Also add managed exclusions to python.analysis.exclude.",
   "configuration.maximumVisibleDirectoryEntries.description": "Maximum number of direct children rendered at once. VS Code still enumerates the directory before this limit is applied."
+  ,"walkthrough.title": "Start Safe Remote Browsing"
+  ,"walkthrough.description": "Browse a large Remote-SSH directory without opening it as a VS Code workspace."
+  ,"walkthrough.step.openView.title": "Keep the large directory out of the workspace"
+  ,"walkthrough.step.openView.description": "Connect with Remote-SSH and leave the large directory unopened. Open the [Explorer](command:workbench.view.explorer), then find **Lazy Workspace Guard**."
+  ,"walkthrough.step.openView.altText": "A protected folder for on-demand browsing"
+  ,"walkthrough.step.browse.title": "Add a safe remote root"
+  ,"walkthrough.step.browse.description": "In an empty Remote-SSH window, run [Browse Remote Directory Safely](command:lazyWorkspaceGuard.browseRemoteDirectory), enter an absolute path, select a completion if useful, then choose **Browse**."
+  ,"walkthrough.step.browse.altText": "A protected folder with a remote directory path"
+  ,"walkthrough.step.safety.title": "Understand the safety boundary"
+  ,"walkthrough.step.safety.description": "Expand only the folders you need. Removing a safe root only removes its saved entry; **Delete** changes the remote filesystem. [Refresh diagnostics](command:lazyWorkspaceGuard.refreshDiagnostics) to view bounded-read metrics."
+  ,"walkthrough.step.safety.altText": "A folder protected by a shield"
 }

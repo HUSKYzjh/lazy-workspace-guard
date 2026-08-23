@@ -8,6 +8,18 @@ interface PackageManifest {
   contributes: {
     commands: Array<{ command: string; title: string; icon?: string }>;
     views: Record<string, Array<{ id: string; name: string }>>;
+    walkthroughs: Array<{
+      id: string;
+      title: string;
+      description: string;
+      steps: Array<{
+        id: string;
+        title: string;
+        description: string;
+        media: { image: string; altText: string };
+        completionEvents: string[];
+      }>;
+    }>;
     menus: Record<string, Array<{ command?: string; submenu?: string; when?: string; group?: string }>>;
   };
 }
@@ -44,6 +56,39 @@ test("keeps localized context-menu labels compact", () => {
   }
   assert.equal(english["submenu.copyAddress"], undefined);
   assert.equal(chinese["submenu.copyAddress"], undefined);
+});
+
+test("contributes a short localized safe-remote walkthrough", () => {
+  const manifest = readJson<PackageManifest>("package.json");
+  const english = readJson<Record<string, string>>("package.nls.json");
+  const chinese = readJson<Record<string, string>>("package.nls.zh-cn.json");
+  const walkthrough = manifest.contributes.walkthroughs.find((item) => item.id === "lazyWorkspaceGuard.safeRemoteStart");
+
+  assert.ok(walkthrough);
+  assert.equal(walkthrough.steps.length, 3);
+  assert.deepEqual(
+    walkthrough.steps.map((step) => step.id),
+    ["openLazyExplorer", "browseSafely", "checkBoundaries"]
+  );
+  assert.deepEqual(
+    walkthrough.steps.map((step) => step.completionEvents[0]),
+    [
+      "onView:lazyWorkspaceGuard.explorer",
+      "onCommand:lazyWorkspaceGuard.browseRemoteDirectory",
+      "onCommand:lazyWorkspaceGuard.refreshDiagnostics"
+    ]
+  );
+  for (const value of [
+    walkthrough.title,
+    walkthrough.description,
+    ...walkthrough.steps.flatMap((step) => [step.title, step.description, step.media.altText])
+  ]) {
+    const key = value.match(/^%(.+)%$/)?.[1];
+    assert.ok(key, `Walkthrough value ${value} must be localized.`);
+    assert.ok(english[key], `English localization is missing ${key}.`);
+    assert.ok(chinese[key], `Chinese localization is missing ${key}.`);
+  }
+  assert.ok(walkthrough.steps.every((step) => step.media.image === "assets/lazy-workspace-guard-icon.png"));
 });
 
 test("uses compact themed icons for tree view toolbar commands", () => {
@@ -141,12 +186,14 @@ test("defines release metadata, a prepublish build, and public release documents
   const manifest = readJson<{
     license: string;
     icon: string;
+    preview: boolean;
     pricing: string;
     galleryBanner: { color: string; theme: string };
     scripts: Record<string, string>;
   }>("package.json");
 
   assert.equal(manifest.license, "MIT");
+  assert.equal(manifest.preview, true);
   assert.equal(manifest.icon, "assets/lazy-workspace-guard-icon.png");
   const icon = readFileSync(resolve(__dirname, "../..", manifest.icon));
   assert.deepEqual([...icon.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], "Marketplace icon must be a PNG.");

@@ -35,4 +35,15 @@
   "configuration.title": "惰性工作区守卫",
   "configuration.excludePythonAnalysis.description": "同时将受管理的排除规则写入 python.analysis.exclude。",
   "configuration.maximumVisibleDirectoryEntries.description": "一次最多渲染的直接子项数量。应用此限制前，VS Code 仍需先列举该目录。"
+  ,"walkthrough.title": "开始安全浏览远程目录"
+  ,"walkthrough.description": "不将大型 Remote-SSH 目录作为 VS Code 工作区打开，即可按需浏览。"
+  ,"walkthrough.step.openView.title": "让大型目录保持在工作区之外"
+  ,"walkthrough.step.openView.description": "使用 Remote-SSH 连接，但不要打开大型目录。打开[资源管理器](command:workbench.view.explorer)，然后找到“**惰性工作区守卫**”。"
+  ,"walkthrough.step.openView.altText": "用于按需浏览的受保护文件夹"
+  ,"walkthrough.step.browse.title": "添加安全远程根目录"
+  ,"walkthrough.step.browse.description": "在未打开工作区的 Remote-SSH 窗口运行[安全浏览远程目录](command:lazyWorkspaceGuard.browseRemoteDirectory)，输入绝对路径；可选择候选项补全，然后选择“**浏览**”。"
+  ,"walkthrough.step.browse.altText": "带有远程目录路径的受保护文件夹"
+  ,"walkthrough.step.safety.title": "理解安全边界"
+  ,"walkthrough.step.safety.description": "只展开当前需要的文件夹。移除安全根只会移除保存记录；“**删除**”会修改远程文件系统。运行[刷新诊断](command:lazyWorkspaceGuard.refreshDiagnostics)可查看有界读取指标。"
+  ,"walkthrough.step.safety.altText": "由盾牌保护的文件夹"
 }

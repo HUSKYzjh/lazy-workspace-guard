@@ -2,6 +2,12 @@
 
 All notable changes to Lazy Workspace Guard are documented here.
 
+## 0.1.13 — 2026-08-23
+
+- Added a localized three-step in-product Getting Started walkthrough for safe Remote-SSH browsing.
+- Reworked the bilingual README into an installation, first-use, feature, safety, and troubleshooting guide.
+- Enlarged the Marketplace icon artwork while retaining its transparent background.
+
 ## 0.1.12 — 2026-08-22
 
 Initial public-preview release.
@@ -12,8 +18,15 @@ Initial public-preview release.
 - Added guarded context-menu operations: open, compare, timeline, copy, create, rename, and delete.
 - Added reversible workspace watcher/search exclusion rules and exclusion templates.
 - Added Marketplace metadata, a PNG icon, release documentation, and a packaging prepublish check.
+- Added a three-step in-product Getting Started walkthrough for safe Remote-SSH browsing.
 
 ## 中文说明
+
+### 0.1.13 — 2026-08-23
+
+- 增加中英文本地化的三步扩展内“入门”引导，用于安全浏览 Remote-SSH 目录。
+- 重新编排双语 README，提供安装、首次使用、功能、安全边界和排障说明。
+- 放大 Marketplace 图标主体，同时保留透明背景。
 
 ### 0.1.12 — 2026-08-22
 
@@ -25,3 +38,4 @@ Initial public-preview release.
 - 提供受保护的打开、比较、时间线、复制、新建、重命名和删除右键菜单。
 - 提供可还原的工作区监听/搜索排除规则及模板。
 - 补充 Marketplace 元数据、PNG 图标、发布文档和打包前编译检查。
+- 增加三步的扩展内“入门”引导，帮助安全浏览 Remote-SSH 目录。

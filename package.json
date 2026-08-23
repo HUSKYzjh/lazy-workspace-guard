@@ -2,7 +2,7 @@
   "name": "lazy-workspace-guard",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "publisher": "hpc-tools",
   "license": "MIT",
   "icon": "assets/lazy-workspace-guard-icon.png",
@@ -28,6 +28,7 @@
     "file-watcher"
   ],
   "pricing": "Free",
+  "preview": true,
   "galleryBanner": {
     "color": "#123b2a",
     "theme": "dark"
@@ -212,6 +213,51 @@
         }
       ]
     },
+    "walkthroughs": [
+      {
+        "id": "lazyWorkspaceGuard.safeRemoteStart",
+        "title": "%walkthrough.title%",
+        "description": "%walkthrough.description%",
+        "steps": [
+          {
+            "id": "openLazyExplorer",
+            "title": "%walkthrough.step.openView.title%",
+            "description": "%walkthrough.step.openView.description%",
+            "media": {
+              "image": "assets/lazy-workspace-guard-icon.png",
+              "altText": "%walkthrough.step.openView.altText%"
+            },
+            "completionEvents": [
+              "onView:lazyWorkspaceGuard.explorer"
+            ]
+          },
+          {
+            "id": "browseSafely",
+            "title": "%walkthrough.step.browse.title%",
+            "description": "%walkthrough.step.browse.description%",
+            "media": {
+              "image": "assets/lazy-workspace-guard-icon.png",
+              "altText": "%walkthrough.step.browse.altText%"
+            },
+            "completionEvents": [
+              "onCommand:lazyWorkspaceGuard.browseRemoteDirectory"
+            ]
+          },
+          {
+            "id": "checkBoundaries",
+            "title": "%walkthrough.step.safety.title%",
+            "description": "%walkthrough.step.safety.description%",
+            "media": {
+              "image": "assets/lazy-workspace-guard-icon.png",
+              "altText": "%walkthrough.step.safety.altText%"
+            },
+            "completionEvents": [
+              "onCommand:lazyWorkspaceGuard.refreshDiagnostics"
+            ]
+          }
+        ]
+      }
+    ],
     "menus": {
       "view/title": [
         {

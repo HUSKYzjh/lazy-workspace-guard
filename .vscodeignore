@@ -20,6 +20,7 @@
 !out/metrics.js
 !out/remoteDirectoryPage.js
 !out/resourceMutation.js
+!out/resourceOpen.js
 !out/rules.js
 !out/ruleTemplates.js
 !out/safeRoots.js

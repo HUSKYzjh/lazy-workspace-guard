@@ -9,6 +9,7 @@ import { isDirectorySortMode, type DirectorySortMode } from "./directorySort";
 import { LazyTreeMetrics } from "./metrics";
 import { readPosixDirectoryPage } from "./remoteDirectoryPage";
 import { normalizeNewResourceName } from "./resourceMutation";
+import { openResourceWithDefaultEditor, openResourceWithEditorPicker, type ExecuteCommand } from "./resourceOpen";
 import { findTemplateDirectories, ruleTemplates, type RuleTemplate } from "./ruleTemplates";
 import { SettingsManager } from "./settingsManager";
 import { SettingsPreviewProvider } from "./settingsPreview";
@@ -51,6 +52,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const settingsManager = new SettingsManager(context.workspaceState);
   const diagnosticsProvider = new DiagnosticsProvider(metrics, () => settingsManager.getManagedRuleCount());
   const settingsPreviewProvider = new SettingsPreviewProvider();
+  const executeCommand: ExecuteCommand = (command, ...arguments_) => vscode.commands.executeCommand(command, ...arguments_);
   let comparisonSource: vscode.Uri | undefined;
   void vscode.commands.executeCommand("setContext", "lazyWorkspaceGuard.hasCompareSource", false);
 
@@ -62,23 +64,25 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerTreeDataProvider("lazyWorkspaceGuard.diagnostics", diagnosticsProvider),
     vscode.workspace.registerTextDocumentContentProvider("lazy-workspace-guard-settings", settingsPreviewProvider),
     vscode.commands.registerCommand("lazyWorkspaceGuard.openResource", async (node: ExplorerNode) => {
-      const document = await vscode.workspace.openTextDocument(node.uri);
-      await vscode.window.showTextDocument(document, { preview: true });
+      if (!node || node.kind !== "file") {
+        return;
+      }
+      await openResourceWithDefaultEditor(executeCommand, node.uri, { preview: true });
     }),
     vscode.commands.registerCommand("lazyWorkspaceGuard.openResourceToSide", async (node: ExplorerNode) => {
       if (!node || node.kind !== "file") {
         return;
       }
-      const document = await vscode.workspace.openTextDocument(node.uri);
-      await vscode.window.showTextDocument(document, { preview: true, viewColumn: vscode.ViewColumn.Beside });
+      await openResourceWithDefaultEditor(executeCommand, node.uri, {
+        preview: true,
+        viewColumn: vscode.ViewColumn.Beside
+      });
     }),
     vscode.commands.registerCommand("lazyWorkspaceGuard.openResourceWith", async (node: ExplorerNode) => {
       if (!node || node.kind !== "file") {
         return;
       }
-      const document = await vscode.workspace.openTextDocument(node.uri);
-      await vscode.window.showTextDocument(document, { preview: true });
-      await vscode.commands.executeCommand("workbench.action.reopenTextEditorWith");
+      await openResourceWithEditorPicker(executeCommand, node.uri);
     }),
     vscode.commands.registerCommand("lazyWorkspaceGuard.selectResourceForCompare", async (node: ExplorerNode) => {
       if (!node || node.kind !== "file") {

@@ -2,6 +2,16 @@
 
 All notable changes to Lazy Workspace Guard are documented here.
 
+## 0.1.15 — 2026-08-31
+
+- Fixed the VSIX runtime allowlist so the binary-aware editor-opening module is included and the remote extension host can activate.
+- Added a packaging test that verifies every direct runtime module imported by the extension entry point is shipped.
+
+## 0.1.14 — 2026-08-31
+
+- Fixed resource opening to delegate binary files, including images, to VS Code's registered editor.
+- Fixed **Open With…** to display VS Code's native editor picker after opening the selected resource.
+
 ## 0.1.13 — 2026-08-23
 
 - Added a localized three-step in-product Getting Started walkthrough for safe Remote-SSH browsing.
@@ -21,6 +31,16 @@ Initial public-preview release.
 - Added a three-step in-product Getting Started walkthrough for safe Remote-SSH browsing.
 
 ## 中文说明
+
+### 0.1.15 — 2026-08-31
+
+- 修复 VSIX 运行时白名单：包含二进制文件打开模块，使远程扩展主机能够正常激活。
+- 增加打包测试，确保扩展入口直接导入的每个运行时模块都会随包发布。
+
+### 0.1.14 — 2026-08-31
+
+- 修复资源打开：二进制文件（包括图片）现在交由 VS Code 已注册的编辑器处理。
+- 修复“打开方式…”：打开选中资源后显示 VS Code 原生编辑器选择器。
 
 ### 0.1.13 — 2026-08-23
 

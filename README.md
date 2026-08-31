@@ -23,7 +23,7 @@ Use this extension when a large directory could make the native Explorer, search
 3. Run **Developer: Reload Window** after installing or updating.
 4. The three-step **Getting Started** walkthrough appears after installation. Reopen it with **Getting Started: Open Walkthrough** and select *Lazy Workspace Guard*.
 
-For a VSIX build, install `lazy-workspace-guard-0.1.13.vsix` while the Remote-SSH window is active.
+For a VSIX build, install `lazy-workspace-guard-0.1.15.vsix` while the Remote-SSH window is active.
 
 ## First safe browse
 
@@ -100,7 +100,7 @@ npm run package
 3. 首次安装或更新后，执行一次“**开发人员：重新加载窗口**”。
 4. 安装后会显示三步“入门”引导；需要再次查看时，运行 **Getting Started: Open Walkthrough**，并选择“惰性工作区守卫”。
 
-使用 VSIX 时，请在 Remote-SSH 窗口中安装 `lazy-workspace-guard-0.1.13.vsix`。
+使用 VSIX 时，请在 Remote-SSH 窗口中安装 `lazy-workspace-guard-0.1.15.vsix`。
 
 ## 第一次安全浏览远程目录
 

@@ -165,10 +165,12 @@ test("provides direct copy and guarded mutation context-menu actions", () => {
 
 test("ships every compiled runtime module imported by the extension", () => {
   const packagingAllowlist = readFileSync(resolve(__dirname, "../..", ".vscodeignore"), "utf8");
+  const extensionSource = readFileSync(resolve(__dirname, "../../src/extension.ts"), "utf8");
+  const runtimeModules = [...extensionSource.matchAll(/from "\.\/([^"/]+)"/g)]
+    .map((match) => `out/${match[1]}.js`);
 
   for (const runtimeModule of [
-    "out/directorySort.js",
-    "out/resourceMutation.js",
+    ...runtimeModules,
     "CHANGELOG.md",
     "SECURITY.md",
     "SUPPORT.md",

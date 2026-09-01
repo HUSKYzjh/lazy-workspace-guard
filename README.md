@@ -1,6 +1,6 @@
 # Lazy Workspace Guard / 惰性工作区守卫
 
-Safely inspect a very large local or Remote-SSH directory **without opening it as a VS Code workspace**. The custom tree reads only the direct children that you expand; it never creates a file watcher or performs a recursive scan.
+Safely inspect a very large local or Remote-SSH directory **without opening it as a VS Code workspace**. The custom tree reads only the direct children that you expand; it never creates a file watcher or performs a recursive scan. Local filesystem and Linux Remote-SSH listings are streamed as bounded pages rather than first materialising the full directory.
 
 > **Preview** — Please report problems with a redacted error message and your VS Code/Remote-SSH versions in [SUPPORT.md](SUPPORT.md).
 
@@ -69,7 +69,7 @@ The custom tree cannot reuse every native Explorer command: some VS Code command
 
 ## Safety model
 
-- Lazy listings use bounded, non-recursive server-side reads. The extension never calls `workspace.createFileSystemWatcher`.
+- Lazy listings use bounded, non-recursive server-side reads. Local filesystem and Linux Remote-SSH pages stop after the configured page plus one look-ahead entry; the extension never calls `workspace.createFileSystemWatcher`.
 - **Remove saved root** only removes the stored path from this view. It never deletes the remote directory.
 - **Delete** modifies the remote filesystem. Folder deletion is recursive; remote trash is requested when supported, but treat it as potentially permanent. Read the full path in the confirmation dialog.
 - New names and renamed names must be one path segment; the extension refuses to overwrite an existing resource.
@@ -104,7 +104,7 @@ npm run package:suite
 
 ## 适用场景
 
-惰性工作区守卫用于**不将目录作为 VS Code 工作区打开**的前提下，检查超大的本地或 Remote-SSH 目录。自定义文件树仅在展开节点时读取其直接子项，不创建文件监听器，也不进行递归扫描。
+惰性工作区守卫用于**不将目录作为 VS Code 工作区打开**的前提下，检查超大的本地或 Remote-SSH 目录。自定义文件树仅在展开节点时读取其直接子项，不创建文件监听器，也不进行递归扫描。本地文件系统和 Linux Remote-SSH 会以有界页面流式读取，不会先把完整目录列表装入内存。
 
 当大型目录会让原生资源管理器、搜索或文件监听占用较多资源时使用它。远程安全浏览仅面向：已经连接的 **Linux Remote-SSH** 窗口，且窗口内**没有打开工作区文件夹**。普通项目仍建议使用原生 Explorer。
 

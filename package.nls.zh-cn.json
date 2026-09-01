@@ -34,7 +34,7 @@
   "view.diagnostics": "惰性工作区守卫：诊断",
   "configuration.title": "惰性工作区守卫",
   "configuration.excludePythonAnalysis.description": "同时将受管理的排除规则写入 python.analysis.exclude。",
-  "configuration.maximumVisibleDirectoryEntries.description": "一次最多渲染的直接子项数量。应用此限制前，VS Code 仍需先列举该目录。"
+  "configuration.maximumVisibleDirectoryEntries.description": "一次最多渲染的直接子项数量。本地文件系统与 Linux Remote-SSH 会在本页加一个探测项后停止列举；其他虚拟文件系统可能回退为 VS Code 列举。"
   ,"walkthrough.title": "开始安全浏览远程目录"
   ,"walkthrough.description": "不将大型 Remote-SSH 目录作为 VS Code 工作区打开，即可按需浏览。"
   ,"walkthrough.step.openView.title": "让大型目录保持在工作区之外"

@@ -34,7 +34,7 @@
   "view.diagnostics": "Lazy Workspace Guard: Diagnostics",
   "configuration.title": "Lazy Workspace Guard",
   "configuration.excludePythonAnalysis.description": "Also add managed exclusions to python.analysis.exclude.",
-  "configuration.maximumVisibleDirectoryEntries.description": "Maximum number of direct children rendered at once. VS Code still enumerates the directory before this limit is applied."
+  "configuration.maximumVisibleDirectoryEntries.description": "Maximum number of direct children rendered at once. Local filesystem and Linux Remote-SSH listings stop after this page plus one look-ahead entry; other virtual providers may fall back to VS Code enumeration."
   ,"walkthrough.title": "Start Safe Remote Browsing"
   ,"walkthrough.description": "Browse a large Remote-SSH directory without opening it as a VS Code workspace."
   ,"walkthrough.step.openView.title": "Keep the large directory out of the workspace"

@@ -1,7 +1,9 @@
 import * as vscode from "vscode";
 import { createDirectoryPage } from "./directoryPage";
+import { DirectoryLimitWarningGate } from "./directoryLimitWarning";
 import { sortDirectoryItems, type DirectorySortMode } from "./directorySort";
 import { t } from "./i18n";
+import { readLocalDirectoryPage } from "./localDirectoryPage";
 import type { LazyTreeMetrics } from "./metrics";
 import { readPosixDirectoryPage } from "./remoteDirectoryPage";
 import { addSafeRoot, removeSafeRoot } from "./safeRoots";
@@ -44,6 +46,7 @@ export class ExplorerNode extends vscode.TreeItem {
 
 export class LazyExplorerProvider implements vscode.TreeDataProvider<ExplorerNode> {
   private readonly changeEmitter = new vscode.EventEmitter<ExplorerNode | undefined>();
+  private readonly directoryLimitWarnings = new DirectoryLimitWarningGate();
   private safeRootUris: vscode.Uri[];
   private sortMode: DirectorySortMode;
   public readonly onDidChangeTreeData = this.changeEmitter.event;
@@ -82,6 +85,16 @@ export class LazyExplorerProvider implements vscode.TreeDataProvider<ExplorerNod
       if (node.usesSafeRemoteBrowsing) {
         return await this.getBoundedRemoteChildren(node, offset, startedAt);
       }
+      if (shouldUsePosixDirectoryReader(node.uri)) {
+        return await this.getBoundedRemoteChildren(node, offset, startedAt);
+      }
+      if (node.uri.scheme === "file") {
+        return await this.getBoundedLocalChildren(node, offset, startedAt);
+      }
+
+      // Non-file virtual providers do not expose a streaming directory API.
+      // Keep this compatibility fallback, but do not use it for ordinary local
+      // folders or Linux Remote-SSH folders where bounded readers are available.
       const entries = await vscode.workspace.fs.readDirectory(node.uri);
       const durationMilliseconds = Date.now() - startedAt;
       this.metrics.recordDirectoryRead(entries.length, durationMilliseconds);
@@ -91,6 +104,9 @@ export class LazyExplorerProvider implements vscode.TreeDataProvider<ExplorerNod
         this.sortMode
       );
       const page = createDirectoryPage(sortedEntries, offset, maximumVisibleEntries);
+      if (page.nextOffset !== undefined) {
+        this.showDirectoryLimitWarning(node.uri, maximumVisibleEntries);
+      }
       const children = page.items.map(({ name, fileType }) => {
           const kind: ExplorerNodeKind = fileType === vscode.FileType.Directory ? "folder" : "file";
           return new ExplorerNode(vscode.Uri.joinPath(node.uri, name), kind, name);
@@ -161,6 +177,9 @@ export class LazyExplorerProvider implements vscode.TreeDataProvider<ExplorerNod
     const page = await readPosixDirectoryPage(node.uri.path, offset, maximumVisibleEntries);
     const durationMilliseconds = Date.now() - startedAt;
     this.metrics.recordDirectoryRead(page.items.length, durationMilliseconds);
+    if (page.nextOffset !== undefined) {
+      this.showDirectoryLimitWarning(node.uri, maximumVisibleEntries);
+    }
     const entries = sortDirectoryItems(
       page.items.map(({ name, type, isSymbolicLink }) => ({
         name,
@@ -195,6 +214,58 @@ export class LazyExplorerProvider implements vscode.TreeDataProvider<ExplorerNod
     return children;
   }
 
+  private async getBoundedLocalChildren(
+    node: ExplorerNode,
+    offset: number,
+    startedAt: number
+  ): Promise<ExplorerNode[]> {
+    const maximumVisibleEntries = getMaximumVisibleEntries(node.uri);
+    const page = await readLocalDirectoryPage(node.uri.fsPath, offset, maximumVisibleEntries);
+    const durationMilliseconds = Date.now() - startedAt;
+    this.metrics.recordDirectoryRead(page.items.length, durationMilliseconds);
+    if (page.nextOffset !== undefined) {
+      this.showDirectoryLimitWarning(node.uri, maximumVisibleEntries);
+    }
+    const entries = sortDirectoryItems(
+      page.items.map(({ name, type, isSymbolicLink }) => ({
+        name,
+        type,
+        isDirectory: type === vscode.FileType.Directory,
+        isSymbolicLink
+      })),
+      this.sortMode
+    );
+    const children = entries.map(({ name, type, isSymbolicLink }) => {
+      const kind: ExplorerNodeKind = type === vscode.FileType.Directory ? "folder" : "file";
+      return new ExplorerNode(
+        vscode.Uri.joinPath(node.uri, name),
+        kind,
+        name,
+        0,
+        isSymbolicLink ? t("symbolicLinkDescription") : undefined,
+        false,
+        isSymbolicLink
+      );
+    });
+    if (page.nextOffset !== undefined) {
+      children.push(new ExplorerNode(
+        node.uri,
+        "loadMore",
+        t("loadMoreEntries", maximumVisibleEntries),
+        page.nextOffset,
+        t("streamingPageDescription", offset + 1, offset + page.items.length, formatMilliseconds(durationMilliseconds))
+      ));
+    }
+    return children;
+  }
+
+  private showDirectoryLimitWarning(uri: vscode.Uri, maximumVisibleEntries: number): void {
+    if (!this.directoryLimitWarnings.shouldWarn(uri.toString())) {
+      return;
+    }
+    void vscode.window.showWarningMessage(t("directoryPageLimitWarning", maximumVisibleEntries, uri.path));
+  }
+
   public dispose(): void {
     this.changeEmitter.dispose();
   }
@@ -205,6 +276,10 @@ function getMaximumVisibleEntries(uri: vscode.Uri): number {
     .getConfiguration("lazyWorkspaceGuard", uri)
     .get<number>("maximumVisibleDirectoryEntries", 1000);
   return Math.max(100, Math.min(configured, 10000));
+}
+
+function shouldUsePosixDirectoryReader(uri: vscode.Uri): boolean {
+  return process.platform === "linux" && vscode.env.remoteName === "ssh-remote" && uri.scheme === "vscode-remote";
 }
 
 function formatMilliseconds(milliseconds: number): string {

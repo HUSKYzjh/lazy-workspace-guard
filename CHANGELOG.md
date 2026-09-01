@@ -2,6 +2,11 @@
 
 All notable changes to Lazy Workspace Guard are documented here.
 
+## 0.1.19 — 2026-09-01
+
+- Stream ordinary local filesystem folders in the custom tree with bounded `opendir()` pages instead of calling `workspace.fs.readDirectory()` for a complete list.
+- Use the existing bounded Linux reader for Remote-SSH workspace nodes as well as safe roots, preventing the custom tree from materialising an entire remote directory before paging.
+
 ## 0.1.18 — 2026-09-01
 
 - Added an optional local UI SSH Bridge and a one-install extension pack architecture.
@@ -47,6 +52,11 @@ Initial public-preview release.
 - Added a three-step in-product Getting Started walkthrough for safe Remote-SSH browsing.
 
 ## 中文说明
+
+### 0.1.19 — 2026-09-01
+
+- 自定义树中的普通本地文件系统文件夹改用有界 `opendir()` 流式分页，不再先通过 `workspace.fs.readDirectory()` 获取完整列表。
+- Remote-SSH 工作区节点也复用现有 Linux 有界读取器，不会在分页前将完整远程目录列表装入自定义树内存。
 
 ### 0.1.18 — 2026-09-01
 

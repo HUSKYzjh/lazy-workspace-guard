@@ -10,7 +10,8 @@ const english = {
   aliasPlaceholder: "SAI-8V100",
   enterAliasPrompt: "The alias is resolved by your local OpenSSH configuration.",
   aliasInvalid: "Enter an alias without spaces or shell characters.",
-  commandCopied: "Copied SSH command: {0}"
+  commandCopied: "Copied resolved SSH command: {0}",
+  commandCopiedConfigFallback: "Copied config-backed SSH command: {0}"
 };
 
 const chinese: typeof english = {
@@ -23,7 +24,8 @@ const chinese: typeof english = {
   aliasPlaceholder: "SAI-8V100",
   enterAliasPrompt: "该别名将由本机 OpenSSH 配置解析。",
   aliasInvalid: "请输入不含空格或 Shell 特殊字符的别名。",
-  commandCopied: "已复制 SSH 命令：{0}"
+  commandCopied: "已复制解析后的 SSH 命令：{0}",
+  commandCopiedConfigFallback: "已复制由 SSH config 驱动的命令：{0}"
 };
 
 type TranslationKey = keyof typeof english;

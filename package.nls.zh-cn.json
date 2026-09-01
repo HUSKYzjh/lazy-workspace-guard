@@ -19,6 +19,7 @@
   "command.copyResourceRelativePath": "复制相对路径 / Copy Relative Path",
   "command.copyResourceUri": "复制 VS Code 远程链接 / Copy VS Code Remote Link",
   "command.copySshLocation": "复制 SSH 命令 / Copy SSH Command",
+  "command.copySshDownloadCommand": "复制 SSH 下载命令 / Copy SSH Download Command",
   "command.browseRemoteDirectory": "安全浏览远程目录 / Browse Remote Directory Safely",
   "command.removeRemoteDirectory": "移除安全远程目录 / Remove Safe Remote Directory",
   "command.refresh": "刷新 / Refresh",

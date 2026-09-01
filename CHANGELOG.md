@@ -2,6 +2,11 @@
 
 All notable changes to Lazy Workspace Guard are documented here.
 
+## 0.1.20 — 2026-09-01
+
+- The local SSH Bridge now resolves the selected local OpenSSH profile with `ssh -G` and copies an explicit SSH command with its effective host, user, port, key-path, and ProxyJump options where safe.
+- Added a file context-menu **Copy SSH Download Command** action that produces an adapted `scp` download command locally. Profiles using `ProxyCommand` remain config-backed to preserve their original semantics.
+
 ## 0.1.19 — 2026-09-01
 
 - Stream ordinary local filesystem folders in the custom tree with bounded `opendir()` pages instead of calling `workspace.fs.readDirectory()` for a complete list.

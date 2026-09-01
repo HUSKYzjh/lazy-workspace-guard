@@ -1,14 +1,26 @@
+import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import * as vscode from "vscode";
 import { t } from "./i18n";
-import { buildSshCommand, normalizeHostAlias, parseSshHostAliases } from "./sshConfig";
+import {
+  buildResolvedScpDownloadCommand,
+  buildResolvedSshCommand,
+  normalizeHostAlias,
+  parseEffectiveSshConfiguration,
+  parseSshHostAliases,
+  type EffectiveSshConfiguration
+} from "./sshConfig";
 
 const profileStorageKey = "sshProfilesByRemoteMachine";
+const execFileAsync = promisify(execFile);
 
 interface ProfileRequest {
   remoteMachineName?: string;
+  action?: "ssh" | "download";
+  remotePath?: string;
 }
 
 interface SshProfile {
@@ -26,7 +38,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const savedProfiles = context.globalState.get<Record<string, string>>(profileStorageKey, {});
         const savedAlias = normalizeHostAlias(savedProfiles[remoteMachineName]);
         if (savedAlias) {
-          return copyProfile(savedAlias, configFile, defaultConfigFile);
+          return copyProfile(savedAlias, configFile, defaultConfigFile, request);
         }
 
         const aliases = await readAliases(configFile);
@@ -36,7 +48,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         await context.globalState.update(profileStorageKey, { ...savedProfiles, [remoteMachineName]: alias });
-        return copyProfile(alias, configFile, defaultConfigFile);
+        return copyProfile(alias, configFile, defaultConfigFile, request);
       }
     )
   );
@@ -92,9 +104,48 @@ async function pickAlias(aliases: string[], remoteMachineName: string): Promise<
   return normalizeHostAlias(input);
 }
 
-async function copyProfile(alias: string, configFile: string, defaultConfigFile: string): Promise<SshProfile> {
-  const command = buildSshCommand(alias, configFile, defaultConfigFile);
-  await vscode.env.clipboard.writeText(command);
-  void vscode.window.showInformationMessage(t("commandCopied", command));
+async function copyProfile(
+  alias: string,
+  configFile: string,
+  defaultConfigFile: string,
+  request: ProfileRequest | undefined
+): Promise<SshProfile> {
+  const configuration = await readEffectiveConfiguration(alias, configFile, defaultConfigFile);
+  const result = request?.action === "download" && request.remotePath
+    ? buildResolvedScpDownloadCommand(alias, configFile, defaultConfigFile, request.remotePath, configuration)
+    : buildResolvedSshCommand(alias, configFile, defaultConfigFile, configuration);
+  await vscode.env.clipboard.writeText(result.command);
+  void vscode.window.showInformationMessage(
+    result.usesConfigFallback ? t("commandCopiedConfigFallback", result.command) : t("commandCopied", result.command)
+  );
   return { alias };
+}
+
+/**
+ * Resolves the selected alias only in the local UI extension host. `ssh -G`
+ * performs no network connection; it lets OpenSSH apply Include, Host, and
+ * Match rules before a compact explicit command is copied to the clipboard.
+ */
+async function readEffectiveConfiguration(
+  alias: string,
+  configFile: string,
+  defaultConfigFile: string
+): Promise<EffectiveSshConfiguration | undefined> {
+  const args = ["-G"];
+  if (configFile !== defaultConfigFile) {
+    args.push("-F", configFile);
+  }
+  args.push(alias);
+  try {
+    const { stdout } = await execFileAsync("ssh", args, {
+      windowsHide: true,
+      timeout: 5000,
+      maxBuffer: 1024 * 1024
+    });
+    return parseEffectiveSshConfiguration(stdout);
+  } catch {
+    // A config-backed command remains correct when OpenSSH is unavailable or
+    // a complex directive cannot be evaluated on the local client.
+    return undefined;
+  }
 }

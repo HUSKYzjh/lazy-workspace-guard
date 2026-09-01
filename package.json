@@ -2,7 +2,7 @@
   "name": "lazy-workspace-guard",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "publisher": "hpc-tools",
   "license": "MIT",
   "icon": "assets/lazy-workspace-guard-icon.png",
@@ -55,6 +55,7 @@
     "onCommand:lazyWorkspaceGuard.copyResourceRelativePath",
     "onCommand:lazyWorkspaceGuard.copyResourceUri",
     "onCommand:lazyWorkspaceGuard.copySshLocation",
+    "onCommand:lazyWorkspaceGuard.copySshDownloadCommand",
     "onCommand:lazyWorkspaceGuard.browseRemoteDirectory",
     "onCommand:lazyWorkspaceGuard.removeRemoteDirectory",
     "onCommand:lazyWorkspaceGuard.refresh",
@@ -144,6 +145,10 @@
       {
         "command": "lazyWorkspaceGuard.copySshLocation",
         "title": "%command.copySshLocation%"
+      },
+      {
+        "command": "lazyWorkspaceGuard.copySshDownloadCommand",
+        "title": "%command.copySshDownloadCommand%"
       },
       {
         "command": "lazyWorkspaceGuard.browseRemoteDirectory",
@@ -358,9 +363,14 @@
           "group": "2_clipboard@5"
         },
         {
+          "command": "lazyWorkspaceGuard.copySshDownloadCommand",
+          "when": "view == lazyWorkspaceGuard.explorer && viewItem == resourceFile",
+          "group": "2_clipboard@6"
+        },
+        {
           "command": "lazyWorkspaceGuard.copyResourceName",
           "when": "view == lazyWorkspaceGuard.explorer && viewItem =~ /resource(SafeRoot|WorkspaceFolder|Folder|SafeRemoteFolder|File)/",
-          "group": "2_clipboard@6"
+          "group": "2_clipboard@7"
         },
         {
           "command": "lazyWorkspaceGuard.createResourceFile",

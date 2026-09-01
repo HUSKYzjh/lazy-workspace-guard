@@ -281,7 +281,7 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!node) {
         return;
       }
-      const bridgedAlias = await copySshCommandUsingLocalBridge(remoteMachineName);
+      const bridgedAlias = await copySshCommandUsingLocalBridge(remoteMachineName, "ssh");
       if (bridgedAlias) {
         try {
           await context.globalState.update(sshHostAliasStorageScope, bridgedAlias);
@@ -294,6 +294,26 @@ export function activate(context: vscode.ExtensionContext): void {
       const sshCommand = await getCurrentRemoteSshCommand(context.globalState, sshHostAliasStorageScope);
       if (sshCommand) {
         await copyResourceValue(sshCommand, t("sshCommandLabel"));
+      }
+    }),
+    vscode.commands.registerCommand("lazyWorkspaceGuard.copySshDownloadCommand", async (node: ExplorerNode) => {
+      if (!node || node.kind !== "file") {
+        return;
+      }
+      const bridgedAlias = await copySshCommandUsingLocalBridge(remoteMachineName, "download", node.uri.path);
+      if (bridgedAlias) {
+        try {
+          await context.globalState.update(sshHostAliasStorageScope, bridgedAlias);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          void vscode.window.showErrorMessage(t("sshCommandPersistenceError", message));
+        }
+        return;
+      }
+      const sshCommand = await getCurrentRemoteSshCommand(context.globalState, sshHostAliasStorageScope);
+      if (sshCommand) {
+        const alias = sshCommand.slice("ssh ".length);
+        await copyResourceValue(`scp \"${alias}:${node.uri.path}\" .`, t("sshDownloadCommandLabel"));
       }
     }),
     vscode.commands.registerCommand("lazyWorkspaceGuard.browseRemoteDirectory", async () => {
@@ -568,9 +588,17 @@ interface SshBridgeProfile {
   alias: string;
 }
 
-async function copySshCommandUsingLocalBridge(remoteMachineName: string): Promise<string | undefined> {
+async function copySshCommandUsingLocalBridge(
+  remoteMachineName: string,
+  action: "ssh" | "download",
+  remotePath?: string
+): Promise<string | undefined> {
   try {
-    const result = await vscode.commands.executeCommand<unknown>(sshBridgeCopyProfileCommand, { remoteMachineName });
+    const result = await vscode.commands.executeCommand<unknown>(sshBridgeCopyProfileCommand, {
+      remoteMachineName,
+      action,
+      remotePath
+    });
     return isSshBridgeProfile(result) ? result.alias : undefined;
   } catch {
     // The bridge is optional. A manual alias prompt remains available when it

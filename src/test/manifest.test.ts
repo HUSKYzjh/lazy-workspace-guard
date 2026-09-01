@@ -154,6 +154,7 @@ test("provides direct copy and guarded mutation context-menu actions", () => {
   assert.match(contextEntry("lazyWorkspaceGuard.compareResourceWithSelected")?.when ?? "", /lazyWorkspaceGuard\.hasCompareSource/);
   assert.equal(contextEntry("lazyWorkspaceGuard.openResourceTimeline")?.when, "view == lazyWorkspaceGuard.explorer && viewItem == resourceFile");
   assert.equal(contextEntry("lazyWorkspaceGuard.copyResourceContents")?.when, "view == lazyWorkspaceGuard.explorer && viewItem == resourceFile");
+  assert.equal(contextEntry("lazyWorkspaceGuard.copySshDownloadCommand")?.when, "view == lazyWorkspaceGuard.explorer && viewItem == resourceFile");
   assert.match(contextEntry("lazyWorkspaceGuard.copyResourceName")?.when ?? "", /SafeRemoteFolder/);
   assert.match(contextEntry("lazyWorkspaceGuard.openResourceTerminal")?.when ?? "", /SafeRemoteFolder/);
   assert.match(contextEntry("lazyWorkspaceGuard.showResourceProperties")?.when ?? "", /SafeRemoteFolder/);

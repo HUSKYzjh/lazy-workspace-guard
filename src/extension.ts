@@ -10,6 +10,7 @@ import { LazyTreeMetrics } from "./metrics";
 import { readPosixDirectoryPage } from "./remoteDirectoryPage";
 import { normalizeNewResourceName } from "./resourceMutation";
 import { openResourceWithDefaultEditor, openResourceWithEditorPicker, type ExecuteCommand } from "./resourceOpen";
+import { getRemoteScopedStorageKey, getSshCommand } from "./remoteIdentity";
 import { findTemplateDirectories, ruleTemplates, type RuleTemplate } from "./ruleTemplates";
 import { SettingsManager } from "./settingsManager";
 import { SettingsPreviewProvider } from "./settingsPreview";
@@ -37,15 +38,17 @@ interface DirectorySortPick extends vscode.QuickPickItem {
 
 export function activate(context: vscode.ExtensionContext): void {
   const metrics = new LazyTreeMetrics();
+  const safeRemoteDirectoryStorageScope = getRemoteScopedStorageKey(safeRemoteDirectoryStorageKey, vscode.env.remoteName);
+  const directorySortModeStorageScope = getRemoteScopedStorageKey(directorySortModeStorageKey, vscode.env.remoteName);
   const canRestoreSafeRoots = canStartSafeRemoteBrowse(
     vscode.env.remoteName,
     vscode.workspace.workspaceFolders?.length ?? 0
   ) && supportsSafeRemoteBackend(process.platform);
-  const savedSortMode = context.globalState.get<unknown>(directorySortModeStorageKey);
+  const savedSortMode = context.globalState.get<unknown>(directorySortModeStorageScope);
   const provider = new LazyExplorerProvider(
     metrics,
     canRestoreSafeRoots
-      ? restoreSafeRemoteDirectoryPaths(context.globalState.get<unknown>(safeRemoteDirectoryStorageKey)).map((path) => vscode.Uri.file(path))
+      ? restoreSafeRemoteDirectoryPaths(context.globalState.get<unknown>(safeRemoteDirectoryStorageScope)).map((path) => vscode.Uri.file(path))
       : [],
     isDirectorySortMode(savedSortMode) ? savedSortMode : "server"
   );
@@ -256,7 +259,8 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!node) {
         return;
       }
-      await copyResourceValue(getSshLocation(node.uri), t("sshLocationLabel"));
+      const sshCommand = getSshCommand(vscode.env.remoteName);
+      await copyResourceValue(sshCommand ?? getRemoteResourceUri(node.uri), t("sshCommandLabel"));
     }),
     vscode.commands.registerCommand("lazyWorkspaceGuard.browseRemoteDirectory", async () => {
       const workspaceFolderCount = vscode.workspace.workspaceFolders?.length ?? 0;
@@ -282,7 +286,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
       try {
-        await persistSafeRemoteDirectories(context.globalState, provider);
+        await persistSafeRemoteDirectories(context.globalState, provider, safeRemoteDirectoryStorageScope);
         void vscode.window.showInformationMessage(t("safeRootAdded"));
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -294,7 +298,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
       try {
-        await persistSafeRemoteDirectories(context.globalState, provider);
+        await persistSafeRemoteDirectories(context.globalState, provider, safeRemoteDirectoryStorageScope);
         void vscode.window.showInformationMessage(t("safeRootRemoved"));
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -332,7 +336,7 @@ export function activate(context: vscode.ExtensionContext): void {
       }
       provider.setSortMode(choice.sortMode);
       try {
-        await context.globalState.update(directorySortModeStorageKey, choice.sortMode);
+        await context.globalState.update(directorySortModeStorageScope, choice.sortMode);
         void vscode.window.showInformationMessage(t("sortModeChanged", choice.label));
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -485,10 +489,11 @@ export function deactivate(): void {}
 
 async function persistSafeRemoteDirectories(
   storage: vscode.Memento,
-  provider: LazyExplorerProvider
+  provider: LazyExplorerProvider,
+  storageKey: string
 ): Promise<void> {
   const paths = restoreSafeRemoteDirectoryPaths(provider.getSafeRootUris().map((uri) => uri.path));
-  await storage.update(safeRemoteDirectoryStorageKey, paths);
+  await storage.update(storageKey, paths);
 }
 
 async function pickNewResourceUri(node: ExplorerNode | undefined, title: string): Promise<vscode.Uri | undefined> {
@@ -563,14 +568,6 @@ function getRemoteResourceUri(uri: vscode.Uri): string {
   return authority
     ? vscode.Uri.from({ scheme: "vscode-remote", authority, path: uri.path }).toString()
     : uri.toString();
-}
-
-function getSshLocation(uri: vscode.Uri): string {
-  const remoteName = vscode.env.remoteName;
-  const authorityPrefix = "ssh-remote+";
-  return remoteName?.startsWith(authorityPrefix)
-    ? `${remoteName.slice(authorityPrefix.length)}:${uri.path}`
-    : getRemoteResourceUri(uri);
 }
 
 function formatResourceSize(bytes: number): string {

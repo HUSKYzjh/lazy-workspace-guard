@@ -23,7 +23,7 @@ Use this extension when a large directory could make the native Explorer, search
 3. Run **Developer: Reload Window** after installing or updating.
 4. The three-step **Getting Started** walkthrough appears after installation. Reopen it with **Getting Started: Open Walkthrough** and select *Lazy Workspace Guard*.
 
-For a VSIX build, install `lazy-workspace-guard-0.1.15.vsix` while the Remote-SSH window is active.
+For a VSIX build, install `lazy-workspace-guard-0.1.16.vsix` while the Remote-SSH window is active.
 
 ## First safe browse
 
@@ -33,7 +33,7 @@ For a VSIX build, install `lazy-workspace-guard-0.1.15.vsix` while the Remote-SS
 4. Select a suggested direct child directory when useful, then choose **Browse**.
 5. Expand only the directories needed for the current task.
 
-The entered path becomes a saved *safe root*, not a workspace folder. Saved roots and the selected sorting mode are restored on later sessions for the same remote extension installation. Use the root trash icon only to remove that saved entry.
+The entered path becomes a saved *safe root*, not a workspace folder. Saved roots and the selected sorting mode are restored on later sessions **for that Remote-SSH host only**. Roots stored by older releases are deliberately not migrated because they have no reliable host identity; add a root once again on each host. Use the root trash icon only to remove that saved entry.
 
 ### Completion and symbolic links
 
@@ -48,11 +48,15 @@ Directory symbolic links appear with a label. Expanding one follows only that se
 | Sort entries | Title-bar gear | Server order or folders-first name order; remembered per remote installation |
 | Inspect cost | **Lazy Workspace Guard: Diagnostics** | Shared Extension Host memory and bounded read counters |
 | Open and compare | File context menu | Open, Open to the Side, Open With, select/compare, Timeline |
-| Copy data | Resource context menu | Name, remote/relative path, Remote URI, SSH location, UTF-8 text contents (up to 1 MiB) |
+| Copy data | Resource context menu | Name, remote/relative path, a VS Code remote link, a ready-to-run `ssh <host>` command, UTF-8 text contents (up to 1 MiB) |
 | Work in a shell | **Open Terminal Here** | Opens a terminal at the selected resource location |
 | Manage files | Context menu | Create file/folder, rename, delete after confirmation |
 
 The custom tree cannot reuse every native Explorer command: some VS Code commands require a workspace-backed item, while actions such as **Find in Folder** could recursively scan the target.
+
+### Sharing a resource location
+
+**Copy VS Code Remote Link** copies a `vscode-remote://…` URI for the exact selected file or directory. Paste it into Markdown, an issue, or a message so a collaborator who is already connected to the **same Remote-SSH host** can open it from VS Code. It does not establish an SSH connection and is not a shell command. Use **Copy SSH Command** for a terminal-ready `ssh <host>` command and **Copy Remote Path** for the path after connecting.
 
 ## Safety model
 
@@ -100,7 +104,7 @@ npm run package
 3. 首次安装或更新后，执行一次“**开发人员：重新加载窗口**”。
 4. 安装后会显示三步“入门”引导；需要再次查看时，运行 **Getting Started: Open Walkthrough**，并选择“惰性工作区守卫”。
 
-使用 VSIX 时，请在 Remote-SSH 窗口中安装 `lazy-workspace-guard-0.1.15.vsix`。
+使用 VSIX 时，请在 Remote-SSH 窗口中安装 `lazy-workspace-guard-0.1.16.vsix`。
 
 ## 第一次安全浏览远程目录
 
@@ -110,7 +114,7 @@ npm run package
 4. 有需要时选择候选目录补全路径，再选择“浏览”。
 5. 只展开当前确实需要查看的文件夹。
 
-加入的目录是保存的“安全根”，不是工作区文件夹。安全根和排序方式会保存到同一远程扩展安装的存储中，后续会话自动恢复。根目录的垃圾桶图标只会移除这条保存记录。
+加入的目录是保存的“安全根”，不是工作区文件夹。安全根和排序方式会按当前 **Remote-SSH 主机** 分开保存，后续连接同一主机时自动恢复。旧版本保存的根目录不迁移，因为无法可靠判断它属于哪个主机；请在每台主机上重新添加一次。根目录的垃圾桶图标只会移除这条保存记录。
 
 ### 自动补全与符号链接
 
@@ -125,11 +129,15 @@ npm run package
 | 更改排序 | 标题栏齿轮 | 服务器顺序或“文件夹优先”的名称排序；会自动记忆 |
 | 了解开销 | “惰性工作区守卫：诊断” | 查看共享 Extension Host 内存和有界读取计数 |
 | 打开和比较 | 文件右键菜单 | 打开、侧边打开、打开方式、选择/与已选项比较、时间线 |
-| 复制信息 | 资源右键菜单 | 名称、远程/相对路径、远程 URI、SSH 地址、文件内容（UTF-8，最多 1 MiB） |
+| 复制信息 | 资源右键菜单 | 名称、远程/相对路径、VS Code 远程链接、可直接运行的 `ssh <主机别名>` 命令、文件内容（UTF-8，最多 1 MiB） |
 | 在终端操作 | “在此处打开终端” | 在所选资源所在位置打开终端 |
 | 管理远程文件 | 右键菜单 | 新建文件/文件夹、重命名、确认后删除 |
 
 惰性树不能照搬全部原生 Explorer 菜单：部分 VS Code 命令要求对象属于工作区 Explorer，“在文件夹中查找”等命令还可能递归扫描目标目录。
+
+### 分享资源位置
+
+“**复制 VS Code 远程链接**”会复制当前文件或目录的精确 `vscode-remote://…` URI。可将它粘贴到 Markdown、Issue 或聊天中；已经连接到**同一 Remote-SSH 主机**的协作者可在 VS Code 中打开该链接。它不会建立 SSH 连接，也不是终端命令。终端中直接连接主机请使用“**复制 SSH 命令**”得到 `ssh <主机别名>`；连接成功后需要路径时请使用“**复制远程路径**”。
 
 ## 安全边界
 

@@ -2,6 +2,12 @@
 
 All notable changes to Lazy Workspace Guard are documented here.
 
+## 0.1.16 — 2026-09-01
+
+- Isolated saved safe roots and directory sorting per Remote-SSH host, preventing paths from one HPC from appearing on another.
+- Replaced **Copy SSH Location** with **Copy SSH Command**, which copies a terminal-ready `ssh <host>` command.
+- Renamed **Copy VS Code Remote URI** to **Copy VS Code Remote Link** and documented that it shares an exact resource link for VS Code users already connected to the same host.
+
 ## 0.1.15 — 2026-08-31
 
 - Fixed the VSIX runtime allowlist so the binary-aware editor-opening module is included and the remote extension host can activate.
@@ -31,6 +37,12 @@ Initial public-preview release.
 - Added a three-step in-product Getting Started walkthrough for safe Remote-SSH browsing.
 
 ## 中文说明
+
+### 0.1.16 — 2026-09-01
+
+- 按 Remote-SSH 主机隔离保存的安全根目录与排序方式，避免一个 HPC 的路径显示在另一个 HPC 中。
+- 将“复制 SSH 地址”改为“复制 SSH 命令”，现在会复制可直接在终端运行的 `ssh <主机别名>` 命令。
+- 将“复制 VS Code 远程 URI”改为“复制 VS Code 远程链接”，并说明它用于向已连接同一主机的 VS Code 用户分享精确资源位置。
 
 ### 0.1.15 — 2026-08-31
 

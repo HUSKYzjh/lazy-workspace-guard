@@ -2,7 +2,7 @@
   "name": "lazy-workspace-guard",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "publisher": "hpc-tools",
   "license": "MIT",
   "icon": "assets/lazy-workspace-guard-icon.png",
@@ -438,7 +438,7 @@
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext .ts",
     "test": "npm run test:unit",
-    "test:unit": "npm run compile && node --test out/test/rules.test.js out/test/metrics.test.js out/test/settingsPlan.test.js out/test/transaction.test.js out/test/directoryPage.test.js out/test/directorySort.test.js out/test/remoteDirectoryPage.test.js out/test/diagnosticSampling.test.js out/test/ruleTemplates.test.js out/test/resourceMutation.test.js out/test/resourceOpen.test.js out/test/manifest.test.js out/test/safeRoots.test.js",
+    "test:unit": "npm run compile && node --test out/test/rules.test.js out/test/metrics.test.js out/test/settingsPlan.test.js out/test/transaction.test.js out/test/directoryPage.test.js out/test/directorySort.test.js out/test/remoteDirectoryPage.test.js out/test/remoteIdentity.test.js out/test/diagnosticSampling.test.js out/test/ruleTemplates.test.js out/test/resourceMutation.test.js out/test/resourceOpen.test.js out/test/manifest.test.js out/test/safeRoots.test.js",
     "test:integration": "npm run compile && node out/test/integration/runTest.js",
     "package": "npx --yes @vscode/vsce@2.26.1 package --no-dependencies"
   },

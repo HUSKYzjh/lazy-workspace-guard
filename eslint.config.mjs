@@ -6,7 +6,7 @@ export default [
     ignores: ["out/**", "node_modules/**"]
   },
   {
-    files: ["src/**/*.ts"],
+    files: ["src/**/*.ts", "ssh-bridge/src/**/*.ts"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

@@ -2,7 +2,7 @@
   "name": "lazy-workspace-guard",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "publisher": "hpc-tools",
   "license": "MIT",
   "icon": "assets/lazy-workspace-guard-icon.png",
@@ -436,11 +436,15 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext .ts",
-    "test": "npm run test:unit",
+    "lint": "eslint src ssh-bridge/src --ext .ts",
+    "test": "npm run test:unit && npm run test:bridge",
     "test:unit": "npm run compile && node --test out/test/rules.test.js out/test/metrics.test.js out/test/settingsPlan.test.js out/test/transaction.test.js out/test/directoryPage.test.js out/test/directorySort.test.js out/test/remoteDirectoryPage.test.js out/test/remoteIdentity.test.js out/test/diagnosticSampling.test.js out/test/ruleTemplates.test.js out/test/resourceMutation.test.js out/test/resourceOpen.test.js out/test/manifest.test.js out/test/safeRoots.test.js",
     "test:integration": "npm run compile && node out/test/integration/runTest.js",
-    "package": "npx --yes @vscode/vsce@2.26.1 package --no-dependencies"
+    "compile:bridge": "tsc -p ./ssh-bridge",
+    "test:bridge": "npm run compile:bridge && node --test ssh-bridge/out/test/sshConfig.test.js",
+    "package": "npx --yes @vscode/vsce@2.26.1 package --no-dependencies",
+    "package:bridge": "cd ssh-bridge && npx --yes @vscode/vsce@2.26.1 package --no-dependencies",
+    "package:suite": "cd remote-browse-pack && npx --yes @vscode/vsce@2.26.1 package --no-dependencies"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",

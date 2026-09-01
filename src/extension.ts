@@ -33,6 +33,7 @@ const maximumClipboardTextBytes = 1024 * 1024;
 const safeRemoteDirectoryStorageKey = "safeRemoteDirectoryPaths";
 const directorySortModeStorageKey = "directorySortMode";
 const sshHostAliasStorageKey = "sshHostAlias";
+const sshBridgeCopyProfileCommand = "lazyWorkspaceGuardSshBridge.copyProfile";
 
 interface RemoteDirectoryPick extends vscode.QuickPickItem {
   pickKind: "browse" | "directory" | "message";
@@ -280,6 +281,16 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!node) {
         return;
       }
+      const bridgedAlias = await copySshCommandUsingLocalBridge(remoteMachineName);
+      if (bridgedAlias) {
+        try {
+          await context.globalState.update(sshHostAliasStorageScope, bridgedAlias);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          void vscode.window.showErrorMessage(t("sshCommandPersistenceError", message));
+        }
+        return;
+      }
       const sshCommand = await getCurrentRemoteSshCommand(context.globalState, sshHostAliasStorageScope);
       if (sshCommand) {
         await copyResourceValue(sshCommand, t("sshCommandLabel"));
@@ -519,7 +530,10 @@ async function persistSafeRemoteDirectories(
   await storage.update(storageKey, paths);
 }
 
-async function getCurrentRemoteSshCommand(storage: vscode.Memento, storageKey: string): Promise<string | undefined> {
+async function getCurrentRemoteSshCommand(
+  storage: vscode.Memento,
+  storageKey: string
+): Promise<string | undefined> {
   const automaticCommand = getSshCommand(vscode.env.remoteName);
   if (automaticCommand) {
     return automaticCommand;
@@ -548,6 +562,29 @@ async function getCurrentRemoteSshCommand(storage: vscode.Memento, storageKey: s
     void vscode.window.showErrorMessage(t("sshCommandPersistenceError", message));
   }
   return getSshCommandForHost(alias);
+}
+
+interface SshBridgeProfile {
+  alias: string;
+}
+
+async function copySshCommandUsingLocalBridge(remoteMachineName: string): Promise<string | undefined> {
+  try {
+    const result = await vscode.commands.executeCommand<unknown>(sshBridgeCopyProfileCommand, { remoteMachineName });
+    return isSshBridgeProfile(result) ? result.alias : undefined;
+  } catch {
+    // The bridge is optional. A manual alias prompt remains available when it
+    // has not been installed on the local VS Code client.
+    return undefined;
+  }
+}
+
+function isSshBridgeProfile(value: unknown): value is SshBridgeProfile {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const profile = value as { alias?: unknown };
+  return normalizeSshHostAlias(typeof profile.alias === "string" ? profile.alias : undefined) !== undefined;
 }
 
 async function pickNewResourceUri(node: ExplorerNode | undefined, title: string): Promise<vscode.Uri | undefined> {

@@ -2,6 +2,11 @@
 
 All notable changes to Lazy Workspace Guard are documented here.
 
+## 0.1.18 — 2026-09-01
+
+- Added an optional local UI SSH Bridge and a one-install extension pack architecture.
+- The remote core now requests a local SSH profile before falling back to a manual alias, without exposing SSH config or key contents to the remote host.
+
 ## 0.1.17 — 2026-09-01
 
 - Use the remote machine name to isolate saved data when VS Code exposes only the generic `ssh-remote` provider name.
@@ -42,6 +47,11 @@ Initial public-preview release.
 - Added a three-step in-product Getting Started walkthrough for safe Remote-SSH browsing.
 
 ## 中文说明
+
+### 0.1.18 — 2026-09-01
+
+- 增加可选的本机 UI SSH 桥接与一键安装扩展包架构。
+- 远端核心会先请求本机 SSH 配置，再回退到手动别名输入；不会向远端主机暴露 SSH config 或密钥内容。
 
 ### 0.1.17 — 2026-09-01
 

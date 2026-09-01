@@ -23,7 +23,16 @@ Use this extension when a large directory could make the native Explorer, search
 3. Run **Developer: Reload Window** after installing or updating.
 4. The three-step **Getting Started** walkthrough appears after installation. Reopen it with **Getting Started: Open Walkthrough** and select *Lazy Workspace Guard*.
 
-For a VSIX build, install `lazy-workspace-guard-0.1.17.vsix` while the Remote-SSH window is active.
+### Recommended paired installation
+
+Install **Lazy Workspace Guard Suite** when it is available in Marketplace. It installs two coordinated extensions in their correct locations:
+
+- **Lazy Workspace Guard** runs on the connected SSH host and performs bounded directory reads.
+- **Lazy Workspace Guard SSH Bridge** runs locally and reads only SSH `Host` aliases from your local config.
+
+The core asks the bridge to copy a profile when you use **Copy SSH Command**. On first use, choose the matching local `Host` alias; subsequent copies are automatic for that remote machine. The bridge writes `ssh <alias>` (or `ssh -F "<config>" <alias>` for a configured non-default file) to the local clipboard, so OpenSSH continues to apply your user, port, identity-file, Include, ProxyJump, and Match settings. It returns only the selected alias to the remote core; it does not read private-key contents or send your SSH config or config-file path to the remote host.
+
+For manual VSIX installation, install `lazy-workspace-guard-0.1.18.vsix` in the Remote-SSH target and `lazy-workspace-guard-ssh-bridge-0.1.0.vsix` under **Local – Installed**, then reload the Remote-SSH window.
 
 ## First safe browse
 
@@ -56,7 +65,7 @@ The custom tree cannot reuse every native Explorer command: some VS Code command
 
 ### Sharing a resource location
 
-**Copy VS Code Remote Link** copies a `vscode-remote://…` URI for the exact selected file or directory. Paste it into Markdown, an issue, or a message so a collaborator who is already connected to the **same Remote-SSH host** can open it from VS Code. It does not establish an SSH connection and is not a shell command. Use **Copy SSH Command** for a terminal-ready `ssh <host>` command and **Copy Remote Path** for the path after connecting. If VS Code exposes only the generic `ssh-remote` provider name, the first copy asks for the SSH alias you used to connect and remembers it for that remote server.
+**Copy VS Code Remote Link** copies a `vscode-remote://…` URI for the exact selected file or directory. Paste it into Markdown, an issue, or a message so a collaborator who is already connected to the **same Remote-SSH host** can open it from VS Code. It does not establish an SSH connection and is not a shell command. Use **Copy SSH Command** for a terminal-ready command and **Copy Remote Path** for the path after connecting. With the local SSH Bridge installed, the first copy offers aliases from your local SSH config and later copies use the stored `ssh <alias>` command automatically. Without the bridge, the core safely falls back to a one-time alias prompt.
 
 ## Safety model
 
@@ -85,6 +94,8 @@ npm run lint
 npm test
 npm run test:integration
 npm run package
+npm run package:bridge
+npm run package:suite
 ```
 
 ---
@@ -104,7 +115,16 @@ npm run package
 3. 首次安装或更新后，执行一次“**开发人员：重新加载窗口**”。
 4. 安装后会显示三步“入门”引导；需要再次查看时，运行 **Getting Started: Open Walkthrough**，并选择“惰性工作区守卫”。
 
-使用 VSIX 时，请在 Remote-SSH 窗口中安装 `lazy-workspace-guard-0.1.17.vsix`。
+### 推荐的配套安装
+
+Marketplace 提供 **Lazy Workspace Guard Suite** 后，推荐直接安装它。它会在正确的位置安装两个协作扩展：
+
+- **惰性工作区守卫**运行在已连接的 SSH 主机上，负责有界目录读取。
+- **惰性工作区守卫 SSH 桥接**运行在本机，只从本机 SSH config 中读取 `Host` 别名。
+
+右键“复制 SSH 命令”时，核心会请求桥接在本机复制命令。首次使用选择对应的本机 `Host` 别名；随后同一远端机器会自动使用该选择。桥接会将 `ssh <别名>`（若使用非默认 config，则为 `ssh -F "<config>" <别名>`）写入本机剪贴板，因此 OpenSSH 仍会处理用户名、端口、密钥路径、Include、ProxyJump 和 Match 规则。它只向远端核心返回所选别名，不读取私钥内容，也不会将 SSH config 或 config 文件路径发送到远端。
+
+手动安装 VSIX 时，请在 Remote-SSH 目标安装 `lazy-workspace-guard-0.1.18.vsix`，并在 **Local – 已安装** 下安装 `lazy-workspace-guard-ssh-bridge-0.1.0.vsix`，然后重载 Remote-SSH 窗口。
 
 ## 第一次安全浏览远程目录
 
@@ -137,7 +157,7 @@ npm run package
 
 ### 分享资源位置
 
-“**复制 VS Code 远程链接**”会复制当前文件或目录的精确 `vscode-remote://…` URI。可将它粘贴到 Markdown、Issue 或聊天中；已经连接到**同一 Remote-SSH 主机**的协作者可在 VS Code 中打开该链接。它不会建立 SSH 连接，也不是终端命令。终端中直接连接主机请使用“**复制 SSH 命令**”得到 `ssh <主机别名>`；连接成功后需要路径时请使用“**复制远程路径**”。若 VS Code 只暴露通用的 `ssh-remote` 提供程序名称，首次复制 SSH 命令会要求输入连接时使用的 SSH 别名，并按当前远程服务器记忆。
+“**复制 VS Code 远程链接**”会复制当前文件或目录的精确 `vscode-remote://…` URI。可将它粘贴到 Markdown、Issue 或聊天中；已经连接到**同一 Remote-SSH 主机**的协作者可在 VS Code 中打开该链接。它不会建立 SSH 连接，也不是终端命令。终端中直接连接主机请使用“**复制 SSH 命令**”得到可直接运行的命令；连接成功后需要路径时请使用“**复制远程路径**”。安装本机 SSH 桥接后，首次复制会显示本机 SSH config 中的别名，以后会自动复制已保存的 `ssh <别名>`。未安装桥接时，核心会安全地回退为一次性手动别名输入。
 
 ## 安全边界
 
@@ -168,4 +188,6 @@ npm run lint
 npm test
 npm run test:integration
 npm run package
+npm run package:bridge
+npm run package:suite
 ```

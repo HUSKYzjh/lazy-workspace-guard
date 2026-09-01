@@ -214,3 +214,31 @@ test("defines release metadata, a prepublish build, and public release documents
     assert.ok(existsSync(resolve(__dirname, "../..", filename)), `${filename} must be present for a public release.`);
   }
 });
+
+test("defines a local SSH bridge and a one-install extension pack", () => {
+  const bridge = readJson<{
+    extensionKind: string[];
+    activationEvents: string[];
+    contributes: { commands: Array<{ command: string; title: string }> };
+  }>("ssh-bridge/package.json");
+  const bridgeEnglish = readJson<Record<string, string>>("ssh-bridge/package.nls.json");
+  const bridgeChinese = readJson<Record<string, string>>("ssh-bridge/package.nls.zh-cn.json");
+  const bridgeAllowlist = readFileSync(resolve(__dirname, "../../ssh-bridge/.vscodeignore"), "utf8");
+  const extensionPack = readJson<{ extensionPack: string[] }>("remote-browse-pack/package.json");
+
+  assert.deepEqual(bridge.extensionKind, ["ui"]);
+  assert.ok(bridge.activationEvents.includes("onCommand:lazyWorkspaceGuardSshBridge.copyProfile"));
+  assert.deepEqual(
+    bridge.contributes.commands.map((command) => command.command),
+    ["lazyWorkspaceGuardSshBridge.copyProfile"]
+  );
+  assert.ok(bridgeEnglish["command.copyProfile"]);
+  assert.ok(bridgeChinese["command.copyProfile"]);
+  for (const filename of ["out/extension.js", "out/i18n.js", "out/sshConfig.js"]) {
+    assert.ok(bridgeAllowlist.includes(`!${filename}`), `${filename} must be included in the SSH Bridge VSIX.`);
+  }
+  assert.deepEqual(extensionPack.extensionPack, [
+    "hpc-tools.lazy-workspace-guard",
+    "hpc-tools.lazy-workspace-guard-ssh-bridge"
+  ]);
+});

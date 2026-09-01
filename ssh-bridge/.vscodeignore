@@ -1,0 +1,9 @@
+**
+!package.json
+!package.nls.json
+!package.nls.zh-cn.json
+!README.md
+!LICENSE
+!out/extension.js
+!out/i18n.js
+!out/sshConfig.js

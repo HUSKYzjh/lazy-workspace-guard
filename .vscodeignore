@@ -13,10 +13,12 @@
 !out/diagnostics.js
 !out/diagnosticSampling.js
 !out/directoryPage.js
+!out/directoryLimitWarning.js
 !out/directorySort.js
 !out/extension.js
 !out/i18n.js
 !out/lazyExplorer.js
+!out/localDirectoryPage.js
 !out/metrics.js
 !out/remoteDirectoryPage.js
 !out/remoteIdentity.js

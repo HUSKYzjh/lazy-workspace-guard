@@ -165,9 +165,7 @@ test("provides direct copy and guarded mutation context-menu actions", () => {
 
 test("ships every compiled runtime module imported by the extension", () => {
   const packagingAllowlist = readFileSync(resolve(__dirname, "../..", ".vscodeignore"), "utf8");
-  const extensionSource = readFileSync(resolve(__dirname, "../../src/extension.ts"), "utf8");
-  const runtimeModules = [...extensionSource.matchAll(/from "\.\/([^"/]+)"/g)]
-    .map((match) => `out/${match[1]}.js`);
+  const runtimeModules = getRuntimeModules("extension").map((module) => `out/${module}.js`);
 
   for (const runtimeModule of [
     ...runtimeModules,
@@ -183,6 +181,25 @@ test("ships every compiled runtime module imported by the extension", () => {
     );
   }
 });
+
+function getRuntimeModules(entryModule: string): string[] {
+  const modules = new Set<string>();
+  const pending = [entryModule];
+
+  while (pending.length > 0) {
+    const module = pending.pop();
+    if (!module || modules.has(module)) {
+      continue;
+    }
+    modules.add(module);
+    const source = readFileSync(resolve(__dirname, `../../src/${module}.ts`), "utf8");
+    for (const match of source.matchAll(/from "\.\/([^"/]+)"/g)) {
+      pending.push(match[1]);
+    }
+  }
+
+  return [...modules];
+}
 
 test("defines release metadata, a prepublish build, and public release documents", () => {
   const manifest = readJson<{

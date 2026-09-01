@@ -22,7 +22,9 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
-      - run: npm run test:integration
+      # Electron needs a display server; GitHub's Linux runners are headless.
+      - name: Run integration tests in a virtual display
+        run: xvfb-run -a npm run test:integration
 
   package:
     name: Package VSIX

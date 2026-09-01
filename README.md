@@ -23,7 +23,7 @@ Use this extension when a large directory could make the native Explorer, search
 3. Run **Developer: Reload Window** after installing or updating.
 4. The three-step **Getting Started** walkthrough appears after installation. Reopen it with **Getting Started: Open Walkthrough** and select *Lazy Workspace Guard*.
 
-For a VSIX build, install `lazy-workspace-guard-0.1.16.vsix` while the Remote-SSH window is active.
+For a VSIX build, install `lazy-workspace-guard-0.1.17.vsix` while the Remote-SSH window is active.
 
 ## First safe browse
 
@@ -56,7 +56,7 @@ The custom tree cannot reuse every native Explorer command: some VS Code command
 
 ### Sharing a resource location
 
-**Copy VS Code Remote Link** copies a `vscode-remote://…` URI for the exact selected file or directory. Paste it into Markdown, an issue, or a message so a collaborator who is already connected to the **same Remote-SSH host** can open it from VS Code. It does not establish an SSH connection and is not a shell command. Use **Copy SSH Command** for a terminal-ready `ssh <host>` command and **Copy Remote Path** for the path after connecting.
+**Copy VS Code Remote Link** copies a `vscode-remote://…` URI for the exact selected file or directory. Paste it into Markdown, an issue, or a message so a collaborator who is already connected to the **same Remote-SSH host** can open it from VS Code. It does not establish an SSH connection and is not a shell command. Use **Copy SSH Command** for a terminal-ready `ssh <host>` command and **Copy Remote Path** for the path after connecting. If VS Code exposes only the generic `ssh-remote` provider name, the first copy asks for the SSH alias you used to connect and remembers it for that remote server.
 
 ## Safety model
 
@@ -104,7 +104,7 @@ npm run package
 3. 首次安装或更新后，执行一次“**开发人员：重新加载窗口**”。
 4. 安装后会显示三步“入门”引导；需要再次查看时，运行 **Getting Started: Open Walkthrough**，并选择“惰性工作区守卫”。
 
-使用 VSIX 时，请在 Remote-SSH 窗口中安装 `lazy-workspace-guard-0.1.16.vsix`。
+使用 VSIX 时，请在 Remote-SSH 窗口中安装 `lazy-workspace-guard-0.1.17.vsix`。
 
 ## 第一次安全浏览远程目录
 
@@ -137,7 +137,7 @@ npm run package
 
 ### 分享资源位置
 
-“**复制 VS Code 远程链接**”会复制当前文件或目录的精确 `vscode-remote://…` URI。可将它粘贴到 Markdown、Issue 或聊天中；已经连接到**同一 Remote-SSH 主机**的协作者可在 VS Code 中打开该链接。它不会建立 SSH 连接，也不是终端命令。终端中直接连接主机请使用“**复制 SSH 命令**”得到 `ssh <主机别名>`；连接成功后需要路径时请使用“**复制远程路径**”。
+“**复制 VS Code 远程链接**”会复制当前文件或目录的精确 `vscode-remote://…` URI。可将它粘贴到 Markdown、Issue 或聊天中；已经连接到**同一 Remote-SSH 主机**的协作者可在 VS Code 中打开该链接。它不会建立 SSH 连接，也不是终端命令。终端中直接连接主机请使用“**复制 SSH 命令**”得到 `ssh <主机别名>`；连接成功后需要路径时请使用“**复制远程路径**”。若 VS Code 只暴露通用的 `ssh-remote` 提供程序名称，首次复制 SSH 命令会要求输入连接时使用的 SSH 别名，并按当前远程服务器记忆。
 
 ## 安全边界
 

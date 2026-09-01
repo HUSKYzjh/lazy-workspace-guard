@@ -2,6 +2,11 @@
 
 All notable changes to Lazy Workspace Guard are documented here.
 
+## 0.1.17 — 2026-09-01
+
+- Use the remote machine name to isolate saved data when VS Code exposes only the generic `ssh-remote` provider name.
+- Prompt once for the SSH alias when VS Code does not expose it, then copy a usable `ssh <alias>` command for that remote server.
+
 ## 0.1.16 — 2026-09-01
 
 - Isolated saved safe roots and directory sorting per Remote-SSH host, preventing paths from one HPC from appearing on another.
@@ -37,6 +42,11 @@ Initial public-preview release.
 - Added a three-step in-product Getting Started walkthrough for safe Remote-SSH browsing.
 
 ## 中文说明
+
+### 0.1.17 — 2026-09-01
+
+- 当 VS Code 只暴露通用的 `ssh-remote` 提供程序名称时，使用远程机器名隔离保存的数据。
+- 当 VS Code 未暴露 SSH 别名时，首次复制会要求输入一次别名，随后为该远程服务器复制可用的 `ssh <别名>` 命令。
 
 ### 0.1.16 — 2026-09-01
 

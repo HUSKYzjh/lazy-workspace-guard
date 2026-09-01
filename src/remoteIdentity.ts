@@ -8,8 +8,13 @@ const safeSshHostPattern = /^[A-Za-z0-9_.@:[\]-]+$/;
  * shared accidentally with another connected host. The old unscoped key is
  * intentionally not read: it has no trustworthy host identity to migrate.
  */
-export function getRemoteScopedStorageKey(baseKey: string, remoteName: string | undefined): string {
-  const scope = getRemoteSshHost(remoteName) ?? remoteName ?? "local";
+export function getRemoteScopedStorageKey(
+  baseKey: string,
+  remoteName: string | undefined,
+  remoteMachineName?: string
+): string {
+  const scope = getRemoteSshHost(remoteName)
+    ?? getFallbackRemoteScope(remoteName, remoteMachineName);
   return `${baseKey}:${encodeURIComponent(scope)}`;
 }
 
@@ -32,8 +37,25 @@ export function getRemoteSshHost(remoteName: string | undefined): string | undef
 
 /** Returns a terminal-ready SSH command for the active Remote-SSH host. */
 export function getSshCommand(remoteName: string | undefined): string | undefined {
-  const host = getRemoteSshHost(remoteName);
-  return host ? `ssh ${host}` : undefined;
+  return getSshCommandForHost(getRemoteSshHost(remoteName));
+}
+
+/** Returns a terminal-ready SSH command after validating a user-supplied host alias. */
+export function getSshCommandForHost(host: string | undefined): string | undefined {
+  const normalizedHost = normalizeSshHostAlias(host);
+  return normalizedHost ? `ssh ${normalizedHost}` : undefined;
+}
+
+export function normalizeSshHostAlias(value: string | undefined): string | undefined {
+  const host = value?.trim();
+  return host && isSafeSshHost(host) ? host : undefined;
+}
+
+function getFallbackRemoteScope(remoteName: string | undefined, remoteMachineName: string | undefined): string {
+  if (remoteName && remoteMachineName) {
+    return `${remoteName}:${remoteMachineName}`;
+  }
+  return remoteName ?? remoteMachineName ?? "local";
 }
 
 function getHostNameFromJson(value: string | undefined): string | undefined {

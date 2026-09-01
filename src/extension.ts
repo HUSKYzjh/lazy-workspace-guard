@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { mkdir, open } from "node:fs/promises";
+import { hostname } from "node:os";
 import { posix } from "node:path";
 import { DiagnosticsProvider } from "./diagnostics";
 import { t } from "./i18n";
@@ -10,7 +11,12 @@ import { LazyTreeMetrics } from "./metrics";
 import { readPosixDirectoryPage } from "./remoteDirectoryPage";
 import { normalizeNewResourceName } from "./resourceMutation";
 import { openResourceWithDefaultEditor, openResourceWithEditorPicker, type ExecuteCommand } from "./resourceOpen";
-import { getRemoteScopedStorageKey, getSshCommand } from "./remoteIdentity";
+import {
+  getRemoteScopedStorageKey,
+  getSshCommand,
+  getSshCommandForHost,
+  normalizeSshHostAlias
+} from "./remoteIdentity";
 import { findTemplateDirectories, ruleTemplates, type RuleTemplate } from "./ruleTemplates";
 import { SettingsManager } from "./settingsManager";
 import { SettingsPreviewProvider } from "./settingsPreview";
@@ -26,6 +32,7 @@ const maximumRemoteDirectoryCompletions = 100;
 const maximumClipboardTextBytes = 1024 * 1024;
 const safeRemoteDirectoryStorageKey = "safeRemoteDirectoryPaths";
 const directorySortModeStorageKey = "directorySortMode";
+const sshHostAliasStorageKey = "sshHostAlias";
 
 interface RemoteDirectoryPick extends vscode.QuickPickItem {
   pickKind: "browse" | "directory" | "message";
@@ -38,8 +45,22 @@ interface DirectorySortPick extends vscode.QuickPickItem {
 
 export function activate(context: vscode.ExtensionContext): void {
   const metrics = new LazyTreeMetrics();
-  const safeRemoteDirectoryStorageScope = getRemoteScopedStorageKey(safeRemoteDirectoryStorageKey, vscode.env.remoteName);
-  const directorySortModeStorageScope = getRemoteScopedStorageKey(directorySortModeStorageKey, vscode.env.remoteName);
+  const remoteMachineName = hostname();
+  const safeRemoteDirectoryStorageScope = getRemoteScopedStorageKey(
+    safeRemoteDirectoryStorageKey,
+    vscode.env.remoteName,
+    remoteMachineName
+  );
+  const directorySortModeStorageScope = getRemoteScopedStorageKey(
+    directorySortModeStorageKey,
+    vscode.env.remoteName,
+    remoteMachineName
+  );
+  const sshHostAliasStorageScope = getRemoteScopedStorageKey(
+    sshHostAliasStorageKey,
+    vscode.env.remoteName,
+    remoteMachineName
+  );
   const canRestoreSafeRoots = canStartSafeRemoteBrowse(
     vscode.env.remoteName,
     vscode.workspace.workspaceFolders?.length ?? 0
@@ -259,8 +280,10 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!node) {
         return;
       }
-      const sshCommand = getSshCommand(vscode.env.remoteName);
-      await copyResourceValue(sshCommand ?? getRemoteResourceUri(node.uri), t("sshCommandLabel"));
+      const sshCommand = await getCurrentRemoteSshCommand(context.globalState, sshHostAliasStorageScope);
+      if (sshCommand) {
+        await copyResourceValue(sshCommand, t("sshCommandLabel"));
+      }
     }),
     vscode.commands.registerCommand("lazyWorkspaceGuard.browseRemoteDirectory", async () => {
       const workspaceFolderCount = vscode.workspace.workspaceFolders?.length ?? 0;
@@ -494,6 +517,37 @@ async function persistSafeRemoteDirectories(
 ): Promise<void> {
   const paths = restoreSafeRemoteDirectoryPaths(provider.getSafeRootUris().map((uri) => uri.path));
   await storage.update(storageKey, paths);
+}
+
+async function getCurrentRemoteSshCommand(storage: vscode.Memento, storageKey: string): Promise<string | undefined> {
+  const automaticCommand = getSshCommand(vscode.env.remoteName);
+  if (automaticCommand) {
+    return automaticCommand;
+  }
+
+  const storedAlias = storage.get<unknown>(storageKey);
+  const storedCommand = getSshCommandForHost(typeof storedAlias === "string" ? storedAlias : undefined);
+  if (storedCommand) {
+    return storedCommand;
+  }
+
+  const input = await vscode.window.showInputBox({
+    title: t("sshCommandHostTitle"),
+    prompt: t("sshCommandHostPrompt"),
+    placeHolder: t("sshCommandHostPlaceholder"),
+    validateInput: (value) => normalizeSshHostAlias(value) ? undefined : t("sshCommandHostInvalid")
+  });
+  const alias = normalizeSshHostAlias(input);
+  if (!alias) {
+    return undefined;
+  }
+  try {
+    await storage.update(storageKey, alias);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    void vscode.window.showErrorMessage(t("sshCommandPersistenceError", message));
+  }
+  return getSshCommandForHost(alias);
 }
 
 async function pickNewResourceUri(node: ExplorerNode | undefined, title: string): Promise<vscode.Uri | undefined> {

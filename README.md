@@ -1,193 +1,28 @@
 # Lazy Workspace Guard / 惰性工作区守卫
 
-Safely inspect a very large local or Remote-SSH directory **without opening it as a VS Code workspace**. The custom tree reads only the direct children that you expand; it never creates a file watcher or performs a recursive scan. Local filesystem and Linux Remote-SSH listings are streamed as bounded pages rather than first materialising the full directory.
+Browse a huge Remote-SSH directory **without opening it as a VS Code workspace**. The lazy tree reads only direct children you expand; it does not recursively scan the target or add a file watcher.
 
-> **Preview** — Please report problems with a redacted error message and your VS Code/Remote-SSH versions in [SUPPORT.md](SUPPORT.md).
+## English
 
-- [English](#english)
-- [中文](#中文)
-- [Changelog](CHANGELOG.md) · [Security & privacy](SECURITY.md) · [Release notes](RELEASE_CHECKLIST.md)
+Install **[Lazy Workspace Guard](https://marketplace.visualstudio.com/items?itemName=hpc-tools.lazy-workspace-guard)** from Marketplace. This single entry-point Suite installs and places two components automatically:
 
----
-
-# English
-
-## Is this for you?
-
-Use this extension when a large directory could make the native Explorer, search, or file watching expensive. It is designed for an already connected **Linux Remote-SSH** window with **no workspace folder open**. It does not replace the native Explorer for ordinary projects.
-
-## Install
-
-1. Connect using **Remote-SSH: Connect to Host**. Do not open the large directory with **File: Open Folder**.
-2. Install the extension under the `SSH: <host>` target, not only under Local.
-3. Run **Developer: Reload Window** after installing or updating.
-4. The three-step **Getting Started** walkthrough appears after installation. Reopen it with **Getting Started: Open Walkthrough** and select *Lazy Workspace Guard*.
-
-### Recommended paired installation
-
-Install **Lazy Workspace Guard Suite** when it is available in Marketplace. It installs two coordinated extensions in their correct locations:
-
-- **Lazy Workspace Guard** runs on the connected SSH host and performs bounded directory reads.
-- **Lazy Workspace Guard SSH Bridge** runs locally and resolves the selected profile from your local OpenSSH config.
-
-The core asks the bridge to copy a profile when you use **Copy SSH Command** or a file's **Copy SSH Download Command**. On first use, choose the matching local `Host` alias; subsequent copies are automatic for that remote machine. The bridge runs local `ssh -G` without opening a connection, then copies an explicit command such as `ssh -p 2202 -i "…\\id_ed25519" user@login.example.edu` or `scp -P 2202 … "user@login.example.edu:/remote/file" .`. It includes the effective user, port, identity-file paths, ProxyJump, and IdentitiesOnly setting. A profile using an unrepresentable `ProxyCommand` deliberately falls back to `ssh`/`scp -F "<config>" <alias>` so the original configuration remains authoritative. It returns only the selected alias to the remote core; it does not read private-key contents or send your SSH config or config-file path to the remote host.
-
-For manual VSIX installation, install the matching `lazy-workspace-guard-<version>.vsix` in the Remote-SSH target and `lazy-workspace-guard-ssh-bridge-<version>.vsix` under **Local – Installed**, then reload the Remote-SSH window.
-
-## First safe browse
-
-1. Confirm the native Explorer says that no folder is open.
-2. Open **Lazy Workspace Guard** in Explorer, then click its folder icon; alternatively run **Browse Remote Directory Safely** from the Command Palette.
-3. Enter an absolute Linux path, such as `/home/user/project/`.
-4. Select a suggested direct child directory when useful, then choose **Browse**.
-5. Expand only the directories needed for the current task.
-
-The entered path becomes a saved *safe root*, not a workspace folder. Saved roots and the selected sorting mode are restored on later sessions **for that Remote-SSH host only**. Roots stored by older releases are deliberately not migrated because they have no reliable host identity; add a root once again on each host. Use the root trash icon only to remove that saved entry.
-
-### Completion and symbolic links
-
-After an absolute path ending in `/`, the dialog offers at most 100 matching direct child directories. The extension applies prefix matching itself, so `/` in the query does not hide entries. If there are no suggestions, the typed path can still be browsed if it exists and is a directory.
-
-Directory symbolic links appear with a label. Expanding one follows only that selected link as a listing root; nested links are not followed recursively.
-
-## What the view can do
-
-| Task | How | Scope |
+| Component | Extension ID | Host |
 | --- | --- | --- |
-| Sort entries | Title-bar gear | Server order or folders-first name order; remembered per remote installation |
-| Inspect cost | **Lazy Workspace Guard: Diagnostics** | Shared Extension Host memory and bounded read counters |
-| Open and compare | File context menu | Open, Open to the Side, Open With, select/compare, Timeline |
-| Copy data | Resource context menu | Name, remote/relative path, a VS Code remote link, an adapted SSH command, a file-only `scp` download command, UTF-8 text contents (up to 1 MiB) |
-| Work in a shell | **Open Terminal Here** | Opens a terminal at the selected resource location |
-| Manage files | Context menu | Create file/folder, rename, delete after confirmation |
+| Remote Core | `hpc-tools.lazy-workspace-guard-remote-core` | Remote-SSH host |
+| Local Bridge | `hpc-tools.lazy-workspace-guard-local-bridge` | Local VS Code client |
 
-The custom tree cannot reuse every native Explorer command: some VS Code commands require a workspace-backed item, while actions such as **Find in Folder** could recursively scan the target.
+Connect with Remote-SSH but leave the large target unopened. Run **Browse Remote Directory Safely**, enter an absolute path, and expand only the folders needed. Right-click files to open, compare, copy paths/URIs/contents, or copy a local-config-aware `scp` download command. Local Bridge uses `ssh -G` on your own computer; it never reads private-key contents or sends local SSH configuration to the remote host.
 
-### Sharing a resource location
+See the detailed bilingual Marketplace guide in [packages/lazy-workspace-guard/README.md](packages/lazy-workspace-guard/README.md) and the [architecture note](docs/architecture.md).
 
-**Copy VS Code Remote Link** copies a `vscode-remote://…` URI for the exact selected file or directory. Paste it into Markdown, an issue, or a message so a collaborator who is already connected to the **same Remote-SSH host** can open it from VS Code. It does not establish an SSH connection and is not a shell command. Use **Copy SSH Command** for an adapted terminal connection, **Copy SSH Download Command** on a file to copy a ready-to-run `scp … remote-file .` command, and **Copy Remote Path** for the path after connecting. With the local SSH Bridge installed, the first copy offers aliases from your local SSH config and later copies resolve the stored alias through local OpenSSH. Without the bridge, the core safely falls back to a one-time alias prompt.
+## 中文
 
-## Safety model
+请从 Marketplace 安装 **Lazy Workspace Guard / 惰性工作区守卫**。这是唯一需要安装的入口 Suite；VS Code 会自动安装并放置两个组件：远端核心运行在 `SSH: <主机>`，本机桥接运行在 `Local`。
 
-- Lazy listings use bounded, non-recursive server-side reads. Local filesystem and Linux Remote-SSH pages stop after the configured page plus one look-ahead entry; the extension never calls `workspace.createFileSystemWatcher`.
-- **Remove saved root** only removes the stored path from this view. It never deletes the remote directory.
-- **Delete** modifies the remote filesystem. Folder deletion is recursive; remote trash is requested when supported, but treat it as potentially permanent. Read the full path in the confirmation dialog.
-- New names and renamed names must be one path segment; the extension refuses to overwrite an existing resource.
-- Workspace exclusion actions apply only to real workspace subfolders. They add reversible `files.watcherExclude`, `search.exclude`, and optional `python.analysis.exclude` rules; they do not apply to safe roots.
+通过 Remote-SSH 连接主机后，不要对大型目标目录执行“打开文件夹”。运行 **安全浏览远程目录**，输入绝对路径，只展开需要查看的目录。文件右键菜单可打开、比较、复制路径/URI/内容，也能生成结合本机 SSH 配置的 `scp` 下载命令。本机桥接仅在你的电脑上运行 `ssh -G`，不会读取私钥内容，也不会把本机 SSH 配置发送给远端。
 
-## Troubleshooting
+完整中英双语安装、操作、诊断和安全边界说明见 [packages/lazy-workspace-guard/README.md](packages/lazy-workspace-guard/README.md)。
 
-| Problem | Check |
-| --- | --- |
-| Command is missing | Install/enable the extension under `SSH: <host>`, then reload the window. |
-| Browse is refused | Close every workspace folder first; safe browse runs only in an empty Remote-SSH window. |
-| No completion results | Use an existing absolute Linux path ending in `/`; results are deliberately limited to 100 direct directories. |
-| Native Explorer shows the directory | It was opened as a workspace. Close the folder/window, reconnect with Remote-SSH, and use safe browse instead. |
-| Need memory details | Open Diagnostics. VS Code does not expose native Explorer or core file-watcher memory through the extension API. |
+## Development / 开发
 
-## Development
-
-```sh
-npm ci
-npm run compile
-npm run lint
-npm test
-npm run test:integration
-npm run package
-npm run package:bridge
-npm run package:suite
-```
-
----
-
-# 中文
-
-## 适用场景
-
-惰性工作区守卫用于**不将目录作为 VS Code 工作区打开**的前提下，检查超大的本地或 Remote-SSH 目录。自定义文件树仅在展开节点时读取其直接子项，不创建文件监听器，也不进行递归扫描。本地文件系统和 Linux Remote-SSH 会以有界页面流式读取，不会先把完整目录列表装入内存。
-
-当大型目录会让原生资源管理器、搜索或文件监听占用较多资源时使用它。远程安全浏览仅面向：已经连接的 **Linux Remote-SSH** 窗口，且窗口内**没有打开工作区文件夹**。普通项目仍建议使用原生 Explorer。
-
-## 安装与开始
-
-1. 使用“**Remote-SSH: Connect to Host**”连接主机；不要对大型目录执行“文件：打开文件夹”。
-2. 在扩展页确认插件安装在 `SSH: <主机>` 目标下，而非仅安装在 Local。
-3. 首次安装或更新后，执行一次“**开发人员：重新加载窗口**”。
-4. 安装后会显示三步“入门”引导；需要再次查看时，运行 **Getting Started: Open Walkthrough**，并选择“惰性工作区守卫”。
-
-### 推荐的配套安装
-
-Marketplace 提供 **Lazy Workspace Guard Suite** 后，推荐直接安装它。它会在正确的位置安装两个协作扩展：
-
-- **惰性工作区守卫**运行在已连接的 SSH 主机上，负责有界目录读取。
-- **惰性工作区守卫 SSH 桥接**运行在本机，负责解析本机 OpenSSH config 中选定的配置。
-
-右键“复制 SSH 命令”或文件的“复制 SSH 下载命令”时，核心会请求桥接在本机复制命令。首次使用选择对应的本机 `Host` 别名；随后同一远端机器会自动使用该选择。桥接在本机运行不建立连接的 `ssh -G`，再复制展开后的命令，例如 `ssh -p 2202 -i "…\\id_ed25519" user@login.example.edu`，或 `scp -P 2202 … "user@login.example.edu:/远程文件" .`。命令会带上实际用户名、端口、密钥路径、ProxyJump 和 IdentitiesOnly；若配置含有无法安全等价展开的 `ProxyCommand`，则会保守地回退为 `ssh`/`scp -F "<config>" <别名>`，继续以原配置为准。它只向远端核心返回所选别名，不读取私钥内容，也不会将 SSH config 或 config 文件路径发送到远端。
-
-手动安装 VSIX 时，请在 Remote-SSH 目标安装同版本的 `lazy-workspace-guard-<version>.vsix`，并在 **Local – 已安装** 下安装 `lazy-workspace-guard-ssh-bridge-<version>.vsix`，然后重载 Remote-SSH 窗口。
-
-## 第一次安全浏览远程目录
-
-1. 确认原生 Explorer 仍显示“尚未打开文件夹”。
-2. 在 Explorer 打开“**惰性工作区守卫**”视图，点击标题栏的文件夹图标；也可在命令面板运行“**安全浏览远程目录**”。
-3. 输入远程 Linux 绝对路径，例如 `/home/用户名/项目目录/`。
-4. 有需要时选择候选目录补全路径，再选择“浏览”。
-5. 只展开当前确实需要查看的文件夹。
-
-加入的目录是保存的“安全根”，不是工作区文件夹。安全根和排序方式会按当前 **Remote-SSH 主机** 分开保存，后续连接同一主机时自动恢复。旧版本保存的根目录不迁移，因为无法可靠判断它属于哪个主机；请在每台主机上重新添加一次。根目录的垃圾桶图标只会移除这条保存记录。
-
-### 自动补全与符号链接
-
-输入以 `/` 结尾的绝对路径后，插件至多显示 100 个匹配的直接子目录，并自行按前缀过滤，因此输入内容中的 `/` 不会让 VS Code 隐藏候选项。没有候选项时，只要输入路径存在且是目录，仍可直接选择“浏览”。
-
-指向目录的符号链接会显示标识。展开后只将该链接本身作为列举根目录，不会递归跟随内部的其他链接。
-
-## 常用功能
-
-| 目标 | 操作方式 | 说明 |
-| --- | --- | --- |
-| 更改排序 | 标题栏齿轮 | 服务器顺序或“文件夹优先”的名称排序；会自动记忆 |
-| 了解开销 | “惰性工作区守卫：诊断” | 查看共享 Extension Host 内存和有界读取计数 |
-| 打开和比较 | 文件右键菜单 | 打开、侧边打开、打开方式、选择/与已选项比较、时间线 |
-| 复制信息 | 资源右键菜单 | 名称、远程/相对路径、VS Code 远程链接、适配后的 SSH 命令、仅文件可用的 `scp` 下载命令、文件内容（UTF-8，最多 1 MiB） |
-| 在终端操作 | “在此处打开终端” | 在所选资源所在位置打开终端 |
-| 管理远程文件 | 右键菜单 | 新建文件/文件夹、重命名、确认后删除 |
-
-惰性树不能照搬全部原生 Explorer 菜单：部分 VS Code 命令要求对象属于工作区 Explorer，“在文件夹中查找”等命令还可能递归扫描目标目录。
-
-### 分享资源位置
-
-“**复制 VS Code 远程链接**”会复制当前文件或目录的精确 `vscode-remote://…` URI。可将它粘贴到 Markdown、Issue 或聊天中；已经连接到**同一 Remote-SSH 主机**的协作者可在 VS Code 中打开该链接。它不会建立 SSH 连接，也不是终端命令。终端中直接连接主机请使用“**复制 SSH 命令**”；对文件使用“**复制 SSH 下载命令**”可得到可直接运行的 `scp … 远程文件 .` 命令；连接成功后需要路径时请使用“**复制远程路径**”。安装本机 SSH 桥接后，首次复制会显示本机 SSH config 中的别名，以后会用本机 OpenSSH 解析已保存别名并生成适配命令。未安装桥接时，核心会安全地回退为一次性手动别名输入。
-
-## 安全边界
-
-- 目录列举始终是有界、非递归的服务端读取；插件绝不调用 `workspace.createFileSystemWatcher`。
-- “移除保存的根目录”只会从本视图删除存储路径，绝不删除远程目录。
-- “删除”会修改远程文件系统。文件夹删除是递归的；即便远程端支持回收站，也应视为可能不可恢复。确认前请核对对话框中的完整路径。
-- 新建和重命名仅接受单个路径片段，且不会覆盖已有资源。
-- 排除规则只对真正的工作区子目录提供；它们可逆地写入 `files.watcherExclude`、`search.exclude` 和可选的 `python.analysis.exclude`，不会作用于安全根目录。
-
-## 排障
-
-| 现象 | 处理方法 |
-| --- | --- |
-| 找不到命令 | 确认插件已安装/启用于 `SSH: <主机>`，然后重载窗口。 |
-| 命令拒绝执行 | 关闭所有工作区文件夹；安全浏览只允许在空的 Remote-SSH 窗口运行。 |
-| 没有补全候选项 | 输入存在、以 `/` 开头并以 `/` 结尾的 Linux 绝对路径；候选项有意最多 100 个。 |
-| 原生 Explorer 出现大目录 | 该目录已经作为工作区打开。关闭文件夹/窗口，重新用 Remote-SSH 连接后再使用安全浏览。 |
-| 希望查看内存 | 打开“诊断”。VS Code 扩展 API 不提供原生 Explorer 或核心文件监听器的内存数据。 |
-
-提交反馈时，请附上 VS Code 与插件版本、是否通过 Remote-SSH 运行，以及脱敏后的错误信息；详见 [SUPPORT.md](SUPPORT.md)。
-
-## 开发
-
-```sh
-npm ci
-npm run compile
-npm run lint
-npm test
-npm run test:integration
-npm run package
-npm run package:bridge
-npm run package:suite
-```
+Run `npm ci`, then `npm run compile`, `npm run lint`, `npm test`, and `npm run test:integration`. `npm run package:all` builds the three VSIX packages; press `F5` to debug Remote Core. Package sources are in `packages/`; product plans and architecture are in `docs/`.

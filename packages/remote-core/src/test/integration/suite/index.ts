@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as vscode from "vscode";
 
-const extensionId = "hpc-tools.lazy-workspace-guard";
+const extensionId = "hpc-tools.lazy-workspace-guard-remote-core";
 const requiredCommands = [
   "lazyWorkspaceGuard.browseRemoteDirectory",
   "lazyWorkspaceGuard.removeRemoteDirectory",

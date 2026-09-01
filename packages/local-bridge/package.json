@@ -1,10 +1,11 @@
 {
-  "name": "lazy-workspace-guard-ssh-bridge",
+  "name": "lazy-workspace-guard-local-bridge",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "publisher": "hpc-tools",
   "license": "MIT",
+  "icon": "assets/lazy-workspace-guard-local-bridge-icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/HUSKYzjh/lazy-workspace-guard.git"
@@ -16,11 +17,11 @@
   "keywords": ["ssh", "remote-ssh", "hpc"],
   "main": "./out/extension.js",
   "extensionKind": ["ui"],
-  "activationEvents": ["onCommand:lazyWorkspaceGuardSshBridge.copyProfile"],
+  "activationEvents": ["onCommand:lazyWorkspaceGuardLocalBridge.copyProfile"],
   "contributes": {
     "commands": [
       {
-        "command": "lazyWorkspaceGuardSshBridge.copyProfile",
+        "command": "lazyWorkspaceGuardLocalBridge.copyProfile",
         "title": "%command.copyProfile%"
       }
     ]

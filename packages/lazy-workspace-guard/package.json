@@ -1,0 +1,22 @@
+{
+  "name": "lazy-workspace-guard",
+  "displayName": "Lazy Workspace Guard",
+  "description": "Install guide and one-click suite for safe Remote-SSH browsing and local SSH commands.",
+  "version": "0.2.0",
+  "publisher": "hpc-tools",
+  "license": "MIT",
+  "icon": "assets/lazy-workspace-guard-icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HUSKYzjh/lazy-workspace-guard.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Extension Packs"],
+  "keywords": ["hpc", "ssh", "remote-ssh", "large-workspace"],
+  "extensionPack": [
+    "hpc-tools.lazy-workspace-guard-remote-core",
+    "hpc-tools.lazy-workspace-guard-local-bridge"
+  ]
+}

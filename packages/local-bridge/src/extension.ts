@@ -30,7 +30,7 @@ interface SshProfile {
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "lazyWorkspaceGuardSshBridge.copyProfile",
+      "lazyWorkspaceGuardLocalBridge.copyProfile",
       async (request?: ProfileRequest): Promise<SshProfile | undefined> => {
         const remoteMachineName = getRemoteMachineName(request);
         const configFile = getConfigFile();

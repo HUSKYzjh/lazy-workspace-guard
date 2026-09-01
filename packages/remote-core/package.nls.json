@@ -1,6 +1,6 @@
 {
-  "displayName": "Lazy Workspace Guard",
-  "description": "Browse excluded large directories on demand without adding recursive file watchers.",
+  "displayName": "Lazy Workspace Guard Remote Core",
+  "description": "Remote-SSH core for bounded, on-demand browsing of large directories without recursive file watchers.",
   "command.openResource": "Open Resource / 打开资源",
   "command.openResourceToSide": "Open Resource to the Side / 在侧边打开资源",
   "command.openResourceWith": "Open With… / 打开方式…",

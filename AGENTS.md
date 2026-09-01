@@ -2,24 +2,24 @@
 
 ## Project Structure & Scope
 
-This directory currently contains product and technical planning documents for a VS Code extension that safely browses very large local or Remote-SSH workspaces:
+This is a three-package VS Code extension repository:
 
-- `VS Code Remote-SSH 大文件树内存问题：情况说明与插件规划.md` records the problem, MVP, API choices, and acceptance criteria.
-- `HPC Lazy Explorer 阶段二—通用化产品计划.md` describes the broader product roadmap and release requirements.
-
-The extension implementation is in `src/`; pure unit tests are in `src/test/`; `.vscode/` contains debug tasks; and `out/` is generated TypeScript output. Keep design plans at the repository root until a `docs/` directory is introduced. Do not commit generated output or dependencies.
+- `packages/lazy-workspace-guard/` is the public Suite and installation guide.
+- `packages/remote-core/` runs on the Remote-SSH extension host; its source and tests are in `src/` and `src/test/`.
+- `packages/local-bridge/` runs on the local UI extension host and resolves local OpenSSH configuration.
+- `docs/` contains product plans and architecture notes; `.vscode/` launches Remote Core. `out/` and `node_modules/` are generated and must not be committed.
 
 ## Development & Verification
 
-Run `npm run compile` to transpile TypeScript, `npm run lint` for ESLint, `npm test` for the Node unit suite, and `npm run test:integration` for the isolated Extension Development Host suite. Press `F5` in VS Code to start an Extension Development Host. Confirm commands in `package.json` before changing CI or documentation.
+Run `npm run compile` to transpile both runtime packages, `npm run lint` for ESLint, `npm test` for the Node unit suites, and `npm run test:integration` for the Remote Core Extension Development Host suite. Run `npm run package:all` to build all three VSIX files. Press `F5` to launch Remote Core.
 
 For planning-only changes, preview the Markdown in VS Code and verify that headings, JSON examples, paths, and cross-references are accurate. Keep claims about VS Code APIs and Remote-SSH behavior tied to the relevant design document.
 
 ## Documentation and Coding Style
 
-Write Markdown with concise Chinese prose, `#`/`##` heading hierarchy, fenced blocks for JSON or shell examples, and backticks for file paths, settings keys, commands, and APIs. Preserve existing Chinese filenames; use descriptive filenames rather than abbreviations.
+Write concise Markdown with `#`/`##` headings, fenced JSON or shell examples, and backticks for paths, settings, commands, and APIs. Use descriptive package names: `lazy-workspace-guard` (Suite), `lazy-workspace-guard-remote-core`, and `lazy-workspace-guard-local-bridge`.
 
-TypeScript uses two-space indentation, `camelCase` for variables/functions, `PascalCase` for classes and exported types, and descriptive command IDs such as `lazyWorkspaceGuard.refreshDiagnostics`. Localize manifest strings through `package.nls.json` and `package.nls.zh-cn.json`, and runtime strings through `src/i18n.ts`. The extension must avoid recursive scans and `workspace.createFileSystemWatcher`; directory reads should be lazy and non-recursive.
+TypeScript uses two-space indentation, `camelCase` for variables/functions, `PascalCase` for classes and exported types, and scoped command IDs. Localize manifest strings through each package's `package.nls*.json` and runtime strings through `src/i18n.ts`. Remote Core must avoid recursive scans and `workspace.createFileSystemWatcher`; directory reads remain lazy and non-recursive.
 
 ## Testing Expectations
 

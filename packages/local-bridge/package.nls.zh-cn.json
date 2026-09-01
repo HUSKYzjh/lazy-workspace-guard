@@ -1,5 +1,5 @@
 {
-  "displayName": "惰性工作区守卫 SSH 桥接",
+  "displayName": "惰性工作区守卫：本机桥接",
   "description": "为惰性工作区守卫读取本机 SSH 配置的桥接扩展。",
   "command.copyProfile": "惰性工作区守卫：复制本机 SSH 命令"
 }

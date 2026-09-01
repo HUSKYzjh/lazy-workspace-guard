@@ -3,10 +3,10 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 
 export default [
   {
-    ignores: ["out/**", "node_modules/**"]
+    ignores: ["out/**", "packages/*/out/**", "node_modules/**"]
   },
   {
-    files: ["src/**/*.ts", "ssh-bridge/src/**/*.ts"],
+    files: ["packages/remote-core/src/**/*.ts", "packages/local-bridge/src/**/*.ts"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

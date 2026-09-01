@@ -1,6 +1,6 @@
 {
-  "displayName": "惰性工作区守卫",
-  "description": "按需浏览已排除的大型目录，且不新增递归文件监听。",
+  "displayName": "惰性工作区守卫：远端核心",
+  "description": "Remote-SSH 远端核心：按需浏览大型目录，且不新增递归文件监听。",
   "command.openResource": "打开资源 / Open Resource",
   "command.openResourceToSide": "在侧边打开资源 / Open Resource to the Side",
   "command.openResourceWith": "打开方式… / Open With…",

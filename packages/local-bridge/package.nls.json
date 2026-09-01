@@ -1,0 +1,5 @@
+{
+  "displayName": "Lazy Workspace Guard Local Bridge",
+  "description": "Local SSH configuration bridge for Lazy Workspace Guard.",
+  "command.copyProfile": "Lazy Workspace Guard: Copy Local SSH Command"
+}

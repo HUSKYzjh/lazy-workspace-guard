@@ -5,8 +5,8 @@
       "name": "Run Lazy Workspace Guard",
       "type": "extensionHost",
       "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "outFiles": ["${workspaceFolder}/out/**/*.js"],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages/remote-core"],
+      "outFiles": ["${workspaceFolder}/packages/remote-core/out/**/*.js"],
       "preLaunchTask": "npm: compile"
     }
   ]

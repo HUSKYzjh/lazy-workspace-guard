@@ -33,7 +33,7 @@ const maximumClipboardTextBytes = 1024 * 1024;
 const safeRemoteDirectoryStorageKey = "safeRemoteDirectoryPaths";
 const directorySortModeStorageKey = "directorySortMode";
 const sshHostAliasStorageKey = "sshHostAlias";
-const sshBridgeCopyProfileCommand = "lazyWorkspaceGuardSshBridge.copyProfile";
+const sshBridgeCopyProfileCommand = "lazyWorkspaceGuardLocalBridge.copyProfile";
 
 interface RemoteDirectoryPick extends vscode.QuickPickItem {
   pickKind: "browse" | "directory" | "message";

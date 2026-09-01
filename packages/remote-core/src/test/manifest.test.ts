@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 interface PackageManifest {
+  name: string;
   activationEvents: string[];
   contributes: {
     commands: Array<{ command: string; title: string; icon?: string }>;
@@ -88,7 +89,7 @@ test("contributes a short localized safe-remote walkthrough", () => {
     assert.ok(english[key], `English localization is missing ${key}.`);
     assert.ok(chinese[key], `Chinese localization is missing ${key}.`);
   }
-  assert.ok(walkthrough.steps.every((step) => step.media.image === "assets/lazy-workspace-guard-icon.png"));
+  assert.ok(walkthrough.steps.every((step) => step.media.image === "assets/lazy-workspace-guard-remote-core-icon.png"));
 });
 
 test("uses compact themed icons for tree view toolbar commands", () => {
@@ -174,7 +175,7 @@ test("ships every compiled runtime module imported by the extension", () => {
     "SECURITY.md",
     "SUPPORT.md",
     "RELEASE_CHECKLIST.md",
-    "assets/lazy-workspace-guard-icon.png"
+    "assets/lazy-workspace-guard-remote-core-icon.png"
   ]) {
     assert.ok(
       packagingAllowlist.includes(`!${runtimeModule}`),
@@ -204,6 +205,7 @@ function getRuntimeModules(entryModule: string): string[] {
 
 test("defines release metadata, a prepublish build, and public release documents", () => {
   const manifest = readJson<{
+    name: string;
     license: string;
     icon: string;
     preview: boolean;
@@ -212,9 +214,10 @@ test("defines release metadata, a prepublish build, and public release documents
     scripts: Record<string, string>;
   }>("package.json");
 
+  assert.equal(manifest.name, "lazy-workspace-guard-remote-core");
   assert.equal(manifest.license, "MIT");
   assert.equal(manifest.preview, true);
-  assert.equal(manifest.icon, "assets/lazy-workspace-guard-icon.png");
+  assert.equal(manifest.icon, "assets/lazy-workspace-guard-remote-core-icon.png");
   const icon = readFileSync(resolve(__dirname, "../..", manifest.icon));
   assert.deepEqual([...icon.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], "Marketplace icon must be a PNG.");
   assert.ok(icon.readUInt32BE(16) >= 128 && icon.readUInt32BE(20) >= 128, "Marketplace icon must be at least 128×128.");
@@ -227,7 +230,7 @@ test("defines release metadata, a prepublish build, and public release documents
     "SECURITY.md",
     "SUPPORT.md",
     "RELEASE_CHECKLIST.md",
-    "assets/lazy-workspace-guard-icon.png"
+    "assets/lazy-workspace-guard-remote-core-icon.png"
   ]) {
     assert.ok(existsSync(resolve(__dirname, "../..", filename)), `${filename} must be present for a public release.`);
   }
@@ -235,28 +238,40 @@ test("defines release metadata, a prepublish build, and public release documents
 
 test("defines a local SSH bridge and a one-install extension pack", () => {
   const bridge = readJson<{
+    name: string;
     extensionKind: string[];
     activationEvents: string[];
+    icon: string;
     contributes: { commands: Array<{ command: string; title: string }> };
-  }>("ssh-bridge/package.json");
-  const bridgeEnglish = readJson<Record<string, string>>("ssh-bridge/package.nls.json");
-  const bridgeChinese = readJson<Record<string, string>>("ssh-bridge/package.nls.zh-cn.json");
-  const bridgeAllowlist = readFileSync(resolve(__dirname, "../../ssh-bridge/.vscodeignore"), "utf8");
-  const extensionPack = readJson<{ extensionPack: string[] }>("remote-browse-pack/package.json");
+  }>("../local-bridge/package.json");
+  const bridgeEnglish = readJson<Record<string, string>>("../local-bridge/package.nls.json");
+  const bridgeChinese = readJson<Record<string, string>>("../local-bridge/package.nls.zh-cn.json");
+  const bridgeAllowlist = readFileSync(resolve(__dirname, "../../../local-bridge/.vscodeignore"), "utf8");
+  const extensionPack = readJson<{ name: string; icon: string; extensionPack: string[] }>("../lazy-workspace-guard/package.json");
 
+  assert.equal(bridge.name, "lazy-workspace-guard-local-bridge");
   assert.deepEqual(bridge.extensionKind, ["ui"]);
-  assert.ok(bridge.activationEvents.includes("onCommand:lazyWorkspaceGuardSshBridge.copyProfile"));
+  assert.ok(bridge.activationEvents.includes("onCommand:lazyWorkspaceGuardLocalBridge.copyProfile"));
   assert.deepEqual(
     bridge.contributes.commands.map((command) => command.command),
-    ["lazyWorkspaceGuardSshBridge.copyProfile"]
+    ["lazyWorkspaceGuardLocalBridge.copyProfile"]
   );
   assert.ok(bridgeEnglish["command.copyProfile"]);
   assert.ok(bridgeChinese["command.copyProfile"]);
+  for (const [packageDirectory, icon] of [
+    ["../local-bridge", bridge.icon],
+    ["../lazy-workspace-guard", extensionPack.icon]
+  ]) {
+    const iconBytes = readFileSync(resolve(__dirname, "../..", packageDirectory, icon));
+    assert.deepEqual([...iconBytes.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    assert.ok(iconBytes.readUInt32BE(16) >= 128 && iconBytes.readUInt32BE(20) >= 128);
+  }
   for (const filename of ["out/extension.js", "out/i18n.js", "out/sshConfig.js"]) {
     assert.ok(bridgeAllowlist.includes(`!${filename}`), `${filename} must be included in the SSH Bridge VSIX.`);
   }
+  assert.equal(extensionPack.name, "lazy-workspace-guard");
   assert.deepEqual(extensionPack.extensionPack, [
-    "hpc-tools.lazy-workspace-guard",
-    "hpc-tools.lazy-workspace-guard-ssh-bridge"
+    "hpc-tools.lazy-workspace-guard-remote-core",
+    "hpc-tools.lazy-workspace-guard-local-bridge"
   ]);
 });

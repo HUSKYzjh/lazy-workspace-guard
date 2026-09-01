@@ -38,15 +38,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run package
+      - run: npm run package:all
       - name: Verify package contains public runtime files only
         run: |
-          if unzip -Z1 *.vsix | grep -E '(^extension/(AGENTS\.md|HPC Lazy Explorer|VS Code Remote-SSH)|/out/test/|\.map$)'; then
+          if unzip -Z1 packages/remote-core/*.vsix | grep -E '(^extension/(AGENTS\.md|docs/)|/out/test/|\.map$)'; then
             echo "VSIX contains non-release files."
             exit 1
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: lazy-workspace-guard-vsix
-          path: "*.vsix"
+          name: lazy-workspace-guard-packages
+          path: |
+            packages/remote-core/*.vsix
+            packages/local-bridge/*.vsix
+            packages/lazy-workspace-guard/*.vsix
           retention-days: 14

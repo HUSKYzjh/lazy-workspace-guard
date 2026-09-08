@@ -19,14 +19,14 @@ export async function openResourceWithDefaultEditor(
 }
 
 /**
- * Open through the default association first, then show VS Code's native editor
- * picker for the active resource. This keeps the picker aligned with installed
- * image, notebook, hex, and custom editors without enumerating them ourselves.
+ * Ask the Files Explorer contribution for its native "Open With..." picker.
+ * It accepts the selected resource directly and discovers installed image,
+ * notebook, hex, and custom editors itself. This avoids undocumented
+ * active-editor commands and never reads a binary resource as text.
  */
 export async function openResourceWithEditorPicker(
   executeCommand: ExecuteCommand,
   resource: unknown
 ): Promise<void> {
-  await openResourceWithDefaultEditor(executeCommand, resource, { preview: true });
-  await executeCommand("workbench.action.reopenTextEditorWith");
+  await executeCommand("explorer.openWith", resource);
 }

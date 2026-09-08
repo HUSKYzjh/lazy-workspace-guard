@@ -21,6 +21,10 @@ export async function run(): Promise<void> {
   assert.equal(extension.isActive, true, "Extension must activate successfully.");
 
   const commands = await vscode.commands.getCommands(true);
+  assert.ok(
+    commands.includes("explorer.openWith"),
+    "VS Code must provide the native Open With picker used by file context actions."
+  );
   for (const command of requiredCommands) {
     assert.ok(commands.includes(command), `Command ${command} must be registered.`);
   }

@@ -28,8 +28,5 @@ test("opens the native editor picker after opening the selected resource", async
 
   await openResourceWithEditorPicker(executeCommand, "vscode-remote://image.png");
 
-  assert.deepEqual(calls, [
-    ["vscode.open", "vscode-remote://image.png", { preview: true }],
-    ["workbench.action.reopenTextEditorWith"]
-  ]);
+  assert.deepEqual(calls, [["explorer.openWith", "vscode-remote://image.png"]]);
 });

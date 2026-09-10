@@ -2,6 +2,11 @@
 
 All notable changes to Lazy Workspace Guard are documented here.
 
+## 0.1.1 — 2026-09-10
+
+- Fixed **Open With…** to invoke the Files Explorer's registered native picker (`explorer.openWith`) for the selected resource, rather than an unavailable active-editor command.
+- Added an Extension Development Host assertion that the native picker command is registered in the supported VS Code runtime.
+
 ## 0.1.20 — 2026-09-01
 
 - The local SSH Bridge now resolves the selected local OpenSSH profile with `ssh -G` and copies an explicit SSH command with its effective host, user, port, key-path, and ProxyJump options where safe.
@@ -57,6 +62,11 @@ Initial public-preview release.
 - Added a three-step in-product Getting Started walkthrough for safe Remote-SSH browsing.
 
 ## 中文说明
+
+### 0.1.1 — 2026-09-10
+
+- 修复“打开方式…”：现在针对选中资源调用文件资源管理器已注册的原生选择器（`explorer.openWith`），不再依赖不存在的活动编辑器命令。
+- 在扩展开发宿主测试中确认受支持 VS Code 运行时已注册该原生选择器命令。
 
 ### 0.1.19 — 2026-09-01
 

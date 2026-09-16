@@ -4,12 +4,15 @@ import { hostname } from "node:os";
 import { posix } from "node:path";
 import { DiagnosticsProvider } from "./diagnostics";
 import { t } from "./i18n";
-import { LazyExplorerProvider } from "./lazyExplorer";
-import type { ExplorerNode } from "./lazyExplorer";
+import { ExplorerNode, LazyExplorerProvider } from "./lazyExplorer";
 import { isDirectorySortMode, type DirectorySortMode } from "./directorySort";
 import { LazyTreeMetrics } from "./metrics";
 import { readPosixDirectoryPage } from "./remoteDirectoryPage";
-import { normalizeNewResourceName } from "./resourceMutation";
+import {
+  normalizeNewResourceName,
+  prepareResourceMoveCandidates,
+  wouldMoveDirectoryIntoDescendant
+} from "./resourceMutation";
 import { openResourceWithDefaultEditor, openResourceWithEditorPicker, type ExecuteCommand } from "./resourceOpen";
 import {
   getRemoteScopedStorageKey,
@@ -34,6 +37,7 @@ const safeRemoteDirectoryStorageKey = "safeRemoteDirectoryPaths";
 const directorySortModeStorageKey = "directorySortMode";
 const sshHostAliasStorageKey = "sshHostAlias";
 const sshBridgeCopyProfileCommand = "lazyWorkspaceGuardLocalBridge.copyProfile";
+const explorerTreeMimeType = "application/vnd.code.tree.lazyworkspaceguard.explorer";
 
 interface RemoteDirectoryPick extends vscode.QuickPickItem {
   pickKind: "browse" | "directory" | "message";
@@ -78,6 +82,13 @@ export function activate(context: vscode.ExtensionContext): void {
   const diagnosticsProvider = new DiagnosticsProvider(metrics, () => settingsManager.getManagedRuleCount());
   const settingsPreviewProvider = new SettingsPreviewProvider();
   const executeCommand: ExecuteCommand = (command, ...arguments_) => vscode.commands.executeCommand(command, ...arguments_);
+  const explorerTreeView = vscode.window.createTreeView("lazyWorkspaceGuard.explorer", {
+    treeDataProvider: provider,
+    // This provides the standard Explorer selection behavior: Ctrl/Cmd toggles
+    // items and Shift selects a contiguous range of already rendered rows.
+    canSelectMany: true,
+    dragAndDropController: createExplorerDragAndDropController(provider)
+  });
   let comparisonSource: vscode.Uri | undefined;
   void vscode.commands.executeCommand("setContext", "lazyWorkspaceGuard.hasCompareSource", false);
 
@@ -85,7 +96,7 @@ export function activate(context: vscode.ExtensionContext): void {
     provider,
     diagnosticsProvider,
     settingsPreviewProvider,
-    vscode.window.registerTreeDataProvider("lazyWorkspaceGuard.explorer", provider),
+    explorerTreeView,
     vscode.window.registerTreeDataProvider("lazyWorkspaceGuard.diagnostics", diagnosticsProvider),
     vscode.workspace.registerTextDocumentContentProvider("lazy-workspace-guard-settings", settingsPreviewProvider),
     vscode.commands.registerCommand("lazyWorkspaceGuard.openResource", async (node: ExplorerNode) => {
@@ -645,6 +656,139 @@ function canMutateExistingResource(node: ExplorerNode | undefined): node is Expl
   }
   void vscode.window.showErrorMessage(t("resourceMutationRootProtected"));
   return false;
+}
+
+function createExplorerDragAndDropController(
+  provider: LazyExplorerProvider
+): vscode.TreeDragAndDropController<ExplorerNode> {
+  return {
+    dragMimeTypes: [explorerTreeMimeType],
+    dropMimeTypes: [explorerTreeMimeType],
+    handleDrag: (source, dataTransfer) => {
+      // VS Code preserves custom DataTransferItem objects when a drop returns
+      // to this same tree. Do not add text/uri-list: a drag from this tree is a
+      // deliberate remote move, not a request to open files in an editor.
+      dataTransfer.set(explorerTreeMimeType, new vscode.DataTransferItem([...source]));
+    },
+    handleDrop: async (target, dataTransfer, token) => {
+      const transferItem = dataTransfer.get(explorerTreeMimeType);
+      const source = transferItem?.value;
+      if (!Array.isArray(source) || !source.every((node) => node instanceof ExplorerNode)) {
+        return;
+      }
+      await moveDroppedResources(source, target, provider, token);
+    }
+  };
+}
+
+async function moveDroppedResources(
+  source: readonly ExplorerNode[],
+  target: ExplorerNode | undefined,
+  provider: LazyExplorerProvider,
+  token: vscode.CancellationToken
+): Promise<void> {
+  if (token.isCancellationRequested) {
+    return;
+  }
+  if (!canReceiveDroppedResources(target)) {
+    return;
+  }
+  if (source.some((node) => !isMovableDroppedResource(node))) {
+    void vscode.window.showErrorMessage(t("moveResourcesSourceProtected"));
+    return;
+  }
+
+  const candidates = prepareResourceMoveCandidates(
+    source.map((node) => ({ path: node.uri.path, isDirectory: node.kind === "folder" })),
+    target.uri.path
+  );
+  if (wouldMoveDirectoryIntoDescendant(candidates, target.uri.path)) {
+    void vscode.window.showErrorMessage(t("moveResourcesIntoDescendant"));
+    return;
+  }
+  if (candidates.length === 0) {
+    void vscode.window.showInformationMessage(t("moveResourcesNoChanges"));
+    return;
+  }
+
+  const destinations = candidates.map((candidate) => vscode.Uri.joinPath(target.uri, posix.basename(candidate.path)));
+  if (new Set(destinations.map((uri) => uri.toString())).size !== destinations.length) {
+    void vscode.window.showErrorMessage(t("moveResourcesNameCollision"));
+    return;
+  }
+
+  try {
+    for (const destination of destinations) {
+      if (await resourceExists(destination)) {
+        void vscode.window.showErrorMessage(t("moveResourcesDestinationExists", destination.path));
+        return;
+      }
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    void vscode.window.showErrorMessage(t("errorPrefix", message));
+    return;
+  }
+
+  const confirm = t("moveResourcesConfirm");
+  const choice = await vscode.window.showWarningMessage(
+    t("moveResourcesPrompt", candidates.length, target.uri.path),
+    { modal: true },
+    confirm
+  );
+  if (choice !== confirm || token.isCancellationRequested) {
+    return;
+  }
+
+  let moved = 0;
+  try {
+    for (let index = 0; index < candidates.length; index += 1) {
+      if (token.isCancellationRequested) {
+        break;
+      }
+      const sourceUri = vscode.Uri.file(candidates[index].path);
+      await vscode.workspace.fs.rename(sourceUri, destinations[index], { overwrite: false });
+      moved += 1;
+    }
+    provider.refresh();
+    if (moved === candidates.length) {
+      void vscode.window.showInformationMessage(t("moveResourcesMoved", moved));
+    } else if (moved > 0) {
+      void vscode.window.showWarningMessage(t("moveResourcesPartialFailure", moved, candidates.length, t("moveResourcesCancelled")));
+    }
+  } catch (error) {
+    provider.refresh();
+    const message = error instanceof Error ? error.message : String(error);
+    if (moved > 0) {
+      void vscode.window.showErrorMessage(t("moveResourcesPartialFailure", moved, candidates.length, message));
+      return;
+    }
+    void vscode.window.showErrorMessage(t("errorPrefix", message));
+  }
+}
+
+function canReceiveDroppedResources(node: ExplorerNode | undefined): node is ExplorerNode {
+  if (!node || node.uri.scheme !== "file" || (node.kind !== "safeRoot" && node.kind !== "workspaceFolder" && node.kind !== "folder")) {
+    void vscode.window.showErrorMessage(t("moveResourcesDestinationFolderOnly"));
+    return false;
+  }
+  return true;
+}
+
+function isMovableDroppedResource(node: ExplorerNode): boolean {
+  return node.uri.scheme === "file" && (node.kind === "folder" || node.kind === "file");
+}
+
+async function resourceExists(uri: vscode.Uri): Promise<boolean> {
+  try {
+    await vscode.workspace.fs.stat(uri);
+    return true;
+  } catch (error) {
+    if (error instanceof vscode.FileSystemError && error.code === "FileNotFound") {
+      return false;
+    }
+    throw error;
+  }
 }
 
 async function pickResourceName(title: string, value?: string): Promise<string | undefined> {

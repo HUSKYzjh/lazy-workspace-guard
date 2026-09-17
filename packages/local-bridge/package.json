@@ -2,7 +2,7 @@
   "name": "lazy-workspace-guard-local-bridge",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "hpc-tools",
   "license": "MIT",
   "icon": "assets/lazy-workspace-guard-local-bridge-icon.png",

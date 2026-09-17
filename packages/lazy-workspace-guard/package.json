@@ -2,7 +2,7 @@
   "name": "lazy-workspace-guard",
   "displayName": "Lazy Workspace Guard",
   "description": "Install guide and one-click suite for safe Remote-SSH browsing and local SSH commands.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "hpc-tools",
   "license": "MIT",
   "icon": "assets/lazy-workspace-guard-icon.png",
